@@ -5,6 +5,7 @@ import { getDailyShop, FortniteItem } from '../services/fortniteApi';
 
 const Home = () => {
   const [featuredItems, setFeaturedItems] = useState<FortniteItem[]>([]);
+  const [latestItems, setLatestItems] = useState<FortniteItem[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -36,7 +37,17 @@ const Home = () => {
       }
     };
 
+    const fetchLatestItems = async () => {
+      try {
+        const shopItems = await getDailyShop();
+        setLatestItems(shopItems);
+      } catch (error) {
+        console.error('Error fetching Fortnite items:', error);
+      }
+    };
+
     fetchFeaturedItems();
+    fetchLatestItems();
   }, []);
 
   const getBestImage = (item: FortniteItem) => {
@@ -80,39 +91,45 @@ const Home = () => {
       </section>
 
       {/* Features Section - Mejorado */}
-      <section className="py-24 relative bg-gray-100">
+      <section className="py-12 relative bg-gradient-to-b from-gray-900 via-gray-100 to-gray-100">
         <div className="container mx-auto px-4">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold text-gray-800 mb-4">¿Por qué elegirnos?</h2>
-            <p className="text-gray-600 text-lg max-w-2xl mx-auto">
+          <div className="text-center mb-8">
+            <h2 className="text-3xl font-bold text-gray-800 mb-2">¿Por qué elegirnos?</h2>
+            <p className="text-gray-600 text-base max-w-2xl mx-auto">
               Descubre las ventajas que nos hacen únicos en el mundo gaming
             </p>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto">
-            <div className="bg-white p-8 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
-              <div className="w-14 h-14 bg-blue-100 rounded-xl flex items-center justify-center mb-6">
-                <Zap className="w-7 h-7 text-blue-600" />
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-5xl mx-auto">
+            <div className="bg-white p-6 rounded-xl shadow hover:shadow-md transition-all duration-300">
+              <div className="flex items-center gap-4 mb-3">
+                <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                  <Zap className="w-5 h-5 text-blue-600" />
+                </div>
+                <h3 className="text-lg font-bold text-gray-800">Entrega Instantánea</h3>
               </div>
-              <h3 className="text-xl font-bold text-gray-800 mb-4">Entrega Instantánea</h3>
-              <p className="text-gray-600">
+              <p className="text-sm text-gray-600">
                 Recibe tus items y códigos de juego al instante después de tu compra, sin esperas ni complicaciones.
               </p>
             </div>
-            <div className="bg-white p-8 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
-              <div className="w-14 h-14 bg-purple-100 rounded-xl flex items-center justify-center mb-6">
-                <Star className="w-7 h-7 text-purple-600" />
+            <div className="bg-white p-6 rounded-xl shadow hover:shadow-md transition-all duration-300">
+              <div className="flex items-center gap-4 mb-3">
+                <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                  <Star className="w-5 h-5 text-purple-600" />
+                </div>
+                <h3 className="text-lg font-bold text-gray-800">Items Exclusivos</h3>
               </div>
-              <h3 className="text-xl font-bold text-gray-800 mb-4">Items Exclusivos</h3>
-              <p className="text-gray-600">
+              <p className="text-sm text-gray-600">
                 Accede a contenido único y elementos especiales que harán destacar tu experiencia de juego.
               </p>
             </div>
-            <div className="bg-white p-8 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
-              <div className="w-14 h-14 bg-green-100 rounded-xl flex items-center justify-center mb-6">
-                <TrendingUp className="w-7 h-7 text-green-600" />
+            <div className="bg-white p-6 rounded-xl shadow hover:shadow-md transition-all duration-300">
+              <div className="flex items-center gap-4 mb-3">
+                <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                  <TrendingUp className="w-5 h-5 text-green-600" />
+                </div>
+                <h3 className="text-lg font-bold text-gray-800">Mejores Precios</h3>
               </div>
-              <h3 className="text-xl font-bold text-gray-800 mb-4">Mejores Precios</h3>
-              <p className="text-gray-600">
+              <p className="text-sm text-gray-600">
                 Garantizamos los mejores precios del mercado con ofertas exclusivas y descuentos especiales.
               </p>
             </div>
@@ -121,7 +138,7 @@ const Home = () => {
       </section>
 
       {/* Featured Fortnite Items - Renovado */}
-      <section className="py-24 bg-white">
+      <section className="py-24 relative bg-gradient-to-b from-gray-100 via-[#D9DBDF] to-[#D9DBDF]">
         <div className="container mx-auto px-4">
           <div className="text-center mb-16">
             <h2 className="text-4xl font-bold text-gray-800 mb-4">Items Destacados de Fortnite</h2>
@@ -179,23 +196,53 @@ const Home = () => {
         </div>
       </section>
 
-      {/* Categories Section */}
-      <section className="py-24 bg-gray-50">
+      {/* Latest Items Section */}
+      <section className="py-20 relative bg-gradient-to-b from-[#D9DBDF] via-white to-white">
         <div className="container mx-auto px-4">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold text-gray-800 mb-4">Categorías de Juegos</h2>
-            <p className="text-gray-600 text-lg max-w-2xl mx-auto">
-              Explora nuestras categorías de juegos y encuentra lo que buscas
+          <div className="text-center mb-12">
+            <h2 className="text-4xl font-bold text-gray-800 mb-4">Últimos Items Agregados</h2>
+            <p className="text-gray-600 text-lg">
+              Descubre los items más recientes que hemos añadido a nuestra tienda
             </p>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-8 max-w-7xl mx-auto">
-            {/* Add your categories here */}
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 max-w-7xl mx-auto">
+            {latestItems?.slice(0, 4).map((item) => (
+              <div
+                key={item.mainId}
+                className="bg-white rounded-2xl shadow-md hover:shadow-lg transition-all duration-300 overflow-hidden group"
+              >
+                <div className="relative aspect-square bg-gradient-to-br from-gray-100 to-gray-200 p-6">
+                  <img
+                    src={item.displayAssets[0]?.full_background}
+                    alt={item.displayName}
+                    className="w-full h-full object-contain transform group-hover:scale-110 transition-transform duration-300"
+                  />
+                </div>
+                <div className="p-6">
+                  <h3 className="text-xl font-bold text-gray-800 mb-2">{item.displayName}</h3>
+                  <div className="flex items-center justify-between">
+                    <span className="text-primary-600 font-semibold">
+                      {item.price.finalPrice} V-Bucks
+                    </span>
+                    <div className={`px-3 py-1 rounded-full text-sm ${
+                      item.rarity.id === 'Legendary' ? 'bg-orange-100 text-orange-600' :
+                      item.rarity.id === 'Epic' ? 'bg-purple-100 text-purple-600' :
+                      item.rarity.id === 'Rare' ? 'bg-blue-100 text-blue-600' :
+                      'bg-gray-100 text-gray-600'
+                    }`}>
+                      {item.rarity.name}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ))}
           </div>
         </div>
       </section>
 
       {/* CTA Section - Renovado */}
-      <section className="py-24 bg-gradient-to-br from-blue-900 via-primary-900 to-purple-900 relative overflow-hidden">
+      <section className="py-24 relative bg-gradient-to-b from-white via-blue-900 to-purple-900 overflow-hidden">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(255,255,255,0.1)_0%,transparent_100%)] opacity-50"></div>
         <div className="container mx-auto px-4 relative z-10">
           <div className="max-w-4xl mx-auto text-center">

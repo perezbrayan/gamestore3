@@ -57,6 +57,7 @@ const FortniteShop: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [selectedItem, setSelectedItem] = useState<ShopItem | null>(null);
   const [activeFilters, setActiveFilters] = useState<string[]>([]);
+  const [activeRarityFilters, setActiveRarityFilters] = useState<string[]>([]);
 
   // Categorías disponibles con iconos SVG
   const categories = [
@@ -125,6 +126,16 @@ const FortniteShop: React.FC = () => {
     }
   ];
 
+  // Lista de rarezas disponibles con sus colores
+  const rarities = [
+    { id: 'all', name: 'Todos', color: 'gray-700' },
+    { id: 'common', name: 'Común', color: 'gray-500' },
+    { id: 'uncommon', name: 'Poco común', color: 'green-500' },
+    { id: 'rare', name: 'Raro', color: 'blue-500' },
+    { id: 'epic', name: 'Épico', color: 'purple-500' },
+    { id: 'legendary', name: 'Legendario', color: 'orange-500' },
+  ];
+
   useEffect(() => {
     const fetchItems = async () => {
       try {
@@ -166,33 +177,65 @@ const FortniteShop: React.FC = () => {
     fetchItems();
   }, []);
 
-  // Función para manejar los filtros
+  // Función para manejar los filtros de rareza
+  const handleRarityFilter = (rarityId: string) => {
+    if (rarityId === 'all') {
+      setActiveRarityFilters([]);
+      applyAllFilters(activeFilters, []);
+      return;
+    }
+
+    setActiveRarityFilters(prev => {
+      const newFilters = prev.includes(rarityId)
+        ? prev.filter(f => f !== rarityId)
+        : [...prev, rarityId];
+      
+      applyAllFilters(activeFilters, newFilters);
+      return newFilters;
+    });
+  };
+
+  // Función para manejar los filtros de categoría
   const handleFilter = (categoryId: string) => {
     setActiveFilters(prev => {
       const newFilters = prev.includes(categoryId)
         ? prev.filter(f => f !== categoryId)
         : [...prev, categoryId];
       
-      // Aplicar filtros
-      if (newFilters.length === 0) {
-        setFilteredItems(items);
-      } else {
-        const filtered = items.filter(item => {
-          // Para bundles, verificar si el item tiene múltiples granted items
-          if (categoryId === 'bundle' && item.granted.length > 1) {
-            return true;
-          }
-          
-          // Verificar si alguno de los items granted coincide con las categorías seleccionadas
-          return item.granted.some(grantedItem => 
-            newFilters.includes(grantedItem.type.id.toLowerCase())
-          );
-        });
-        setFilteredItems(filtered);
-      }
-      
+      applyAllFilters(newFilters, activeRarityFilters);
       return newFilters;
     });
+  };
+
+  // Función para aplicar todos los filtros
+  const applyAllFilters = (categoryFilters: string[], rarityFilters: string[]) => {
+    let filtered = items;
+
+    // Aplicar filtros de categoría
+    if (categoryFilters.length > 0) {
+      filtered = filtered.filter(item => {
+        // Para bundles, verificar si el item tiene múltiples granted items
+        if (categoryFilters.includes('bundle') && item.granted.length > 1) {
+          return true;
+        }
+        
+        // Verificar si alguno de los items granted coincide con las categorías seleccionadas
+        return item.granted.some(grantedItem => 
+          categoryFilters.includes(grantedItem.type.id.toLowerCase())
+        );
+      });
+    }
+
+    // Aplicar filtros de rareza
+    if (rarityFilters.length > 0) {
+      filtered = filtered.filter(item =>
+        item.granted.some(grantedItem =>
+          rarityFilters.includes(grantedItem.rarity.id.toLowerCase())
+        )
+      );
+    }
+
+    setFilteredItems(filtered);
   };
 
   const getItemImage = (item: ShopItem): string => {
@@ -278,217 +321,251 @@ const FortniteShop: React.FC = () => {
   }
 
   return (
-    <div className="container mx-auto px-4 pt-24 pb-12">
-      {/* Hero Section */}
-      <div className="text-center mb-12">
-        <h1 className="text-4xl font-bold text-gray-900 mb-4">
-          Tienda Diaria de Fortnite
-        </h1>
-        <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-          Explora los items más recientes de la tienda de Fortnite. 
-          Actualizada diariamente con los mejores cosméticos y paquetes.
-        </p>
-      </div>
+    <div className="min-h-screen bg-gray-50 pt-8 pb-12">
+      <div className="container mx-auto px-4">
+        <div className="text-center mb-8">
+          <h1 className="text-4xl font-bold text-gray-900 mb-3">Tienda Diaria de Fortnite</h1>
+          <p className="text-lg text-gray-600">
+            Explora los items más recientes de la tienda de Fortnite. Actualizada diariamente con<br/>
+            los mejores cosméticos y paquetes.
+          </p>
+        </div>
 
-      {/* Layout Principal */}
-      <div className="flex flex-col lg:flex-row gap-8">
-        {/* Sidebar de Filtros */}
-        <aside className="lg:w-64 flex-shrink-0">
-          <div className="bg-white rounded-xl shadow-md p-6 sticky top-24">
-            <div className="flex items-center gap-3 mb-6 border-b border-gray-100 pb-4">
-              <Filter className="w-6 h-6 text-primary-600" />
-              <h2 className="text-xl font-bold text-gray-900">Categorías</h2>
+        {/* Filtros de Rareza */}
+        <div className="flex flex-col lg:flex-row gap-8">
+          {/* Sidebar de Filtros */}
+          <div className="lg:w-64">
+            {/* Filtros de Rareza */}
+            <div className="flex flex-col gap-2 p-4 bg-white rounded-lg shadow-sm">
+              <div className="flex items-center gap-2 text-gray-800">
+                <Filter className="w-4 h-4" />
+                <span className="font-medium">Filtrar por Rareza</span>
+              </div>
+              <div className="flex flex-col gap-2">
+                {rarities.map((rarity) => (
+                  <button
+                    key={rarity.id}
+                    onClick={() => handleRarityFilter(rarity.id)}
+                    className={`flex items-center gap-2 px-3 py-2 rounded-md transition-all ${
+                      rarity.id === 'all'
+                        ? activeRarityFilters.length === 0
+                          ? 'bg-gray-100 text-gray-900'
+                          : 'hover:bg-gray-50 text-gray-700'
+                        : activeRarityFilters.includes(rarity.id)
+                        ? `bg-${rarity.color}/10 text-${rarity.color}`
+                        : `hover:bg-${rarity.color}/5 text-gray-700`
+                    }`}
+                  >
+                    <div
+                      className={`w-2 h-2 rounded-full ${
+                        rarity.id === 'all'
+                          ? 'bg-gray-700'
+                          : `bg-${rarity.color}`
+                      }`}
+                    />
+                    {rarity.name}
+                  </button>
+                ))}
+              </div>
             </div>
-            
-            <div className="flex flex-col gap-3">
-              {categories.map(category => (
-                <button
-                  key={category.id}
-                  onClick={() => handleFilter(category.id)}
-                  className={`
-                    group flex items-center gap-3 p-3 rounded-lg
-                    transition-all duration-200
-                    ${activeFilters.includes(category.id)
-                      ? 'bg-primary-600 text-white shadow-md'
-                      : 'bg-gray-50 text-gray-700 hover:bg-gray-100'
-                    }
-                  `}
-                >
-                  <div className={`
-                    w-10 h-10 rounded-lg flex items-center justify-center
-                    ${activeFilters.includes(category.id)
-                      ? 'bg-white/10'
-                      : 'bg-white shadow-sm group-hover:shadow-md'
-                    }
-                  `}>
-                    {category.icon(activeFilters.includes(category.id))}
-                  </div>
-                  <span className="font-medium">{category.name}</span>
-                  {activeFilters.includes(category.id) && (
-                    <span className="ml-auto text-sm bg-white/20 px-2 py-0.5 rounded-full">
-                      {filteredItems.filter(item => 
-                        category.id === 'bundle' 
-                          ? item.granted.length > 1
-                          : item.granted.some(g => g.type.id.toLowerCase() === category.id)
-                      ).length}
-                    </span>
-                  )}
-                </button>
-              ))}
 
-              {activeFilters.length > 0 && (
-                <button
-                  onClick={() => {
-                    setActiveFilters([]);
-                    setFilteredItems(items);
-                  }}
-                  className="mt-3 px-4 py-3 rounded-lg text-red-600 hover:bg-red-50 transition-colors flex items-center gap-2 justify-center border border-red-200"
-                >
-                  <X className="w-4 h-4" />
-                  <span>Limpiar filtros</span>
-                </button>
-              )}
+            {/* Categorías */}
+            <div className="bg-white rounded-xl shadow-md p-6 sticky top-24">
+              <div className="flex items-center gap-3 mb-6 border-b border-gray-100 pb-4">
+                <Filter className="w-6 h-6 text-primary-600" />
+                <h2 className="text-xl font-bold text-gray-900">Categorías</h2>
+              </div>
+              
+              <div className="flex flex-col gap-3">
+                {categories.map(category => (
+                  <button
+                    key={category.id}
+                    onClick={() => handleFilter(category.id)}
+                    className={`
+                      group flex items-center gap-3 p-3 rounded-lg
+                      transition-all duration-200
+                      ${activeFilters.includes(category.id)
+                        ? 'bg-primary-600 text-white shadow-md'
+                        : 'bg-gray-50 text-gray-700 hover:bg-gray-100'
+                      }
+                    `}
+                  >
+                    <div className={`
+                      w-10 h-10 rounded-lg flex items-center justify-center
+                      ${activeFilters.includes(category.id)
+                        ? 'bg-white/10'
+                        : 'bg-white shadow-sm group-hover:shadow-md'
+                      }
+                    `}>
+                      {category.icon(activeFilters.includes(category.id))}
+                    </div>
+                    <span className="font-medium">{category.name}</span>
+                    {activeFilters.includes(category.id) && (
+                      <span className="ml-auto text-sm bg-white/20 px-2 py-0.5 rounded-full">
+                        {filteredItems.filter(item => 
+                          category.id === 'bundle' 
+                            ? item.granted.length > 1
+                            : item.granted.some(g => g.type.id.toLowerCase() === category.id)
+                        ).length}
+                      </span>
+                    )}
+                  </button>
+                ))}
+
+                {activeFilters.length > 0 && (
+                  <button
+                    onClick={() => {
+                      setActiveFilters([]);
+                      setFilteredItems(items);
+                    }}
+                    className="mt-3 px-4 py-3 rounded-lg text-red-600 hover:bg-red-50 transition-colors flex items-center gap-2 justify-center border border-red-200"
+                  >
+                    <X className="w-4 h-4" />
+                    <span>Limpiar filtros</span>
+                  </button>
+                )}
+              </div>
             </div>
           </div>
-        </aside>
 
-        {/* Contenido Principal */}
-        <main className="flex-1">
-          {/* Items Grid */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
-            {filteredItems.map((item, index) => (
-              <div 
-                key={`${item.mainId}-${index}`}
-                className="group relative bg-white rounded-xl shadow-md overflow-hidden transition-transform hover:scale-[1.02] hover:shadow-lg"
-              >
-                {/* Item Image */}
-                <div className="relative aspect-square">
-                  <img
-                    src={getItemImage(item)}
-                    alt={item.displayName}
-                    className="w-full h-full object-cover"
-                    loading="lazy"
-                    onError={(e) => {
-                      const target = e.target as HTMLImageElement;
-                      target.src = 'https://via.placeholder.com/512x512.png?text=Error+Loading+Image';
-                    }}
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-                </div>
-
-                {/* Item Details */}
-                <div className="p-4">
-                  <div className="flex items-start justify-between mb-2">
-                    <h3 className="text-lg font-semibold text-gray-900 line-clamp-1">
-                      {item.displayName}
-                    </h3>
-                    <span className={`flex items-center gap-1 px-3 py-1 rounded-full text-sm font-medium text-white ${getRarityColor(item.granted[0].rarity.name)}`}>
-                      <Star className="w-4 h-4" />
-                      {item.granted[0].rarity.name}
-                    </span>
+          {/* Contenido Principal */}
+          <main className="flex-1">
+            {/* Items Grid */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
+              {filteredItems.map((item, index) => (
+                <div 
+                  key={`${item.mainId}-${index}`}
+                  className="group relative bg-white rounded-xl shadow-md overflow-hidden transition-transform hover:scale-[1.02] hover:shadow-lg"
+                >
+                  {/* Item Image */}
+                  <div className="relative aspect-square">
+                    <img
+                      src={getItemImage(item)}
+                      alt={item.displayName}
+                      className="w-full h-full object-cover"
+                      loading="lazy"
+                      onError={(e) => {
+                        const target = e.target as HTMLImageElement;
+                        target.src = 'https://via.placeholder.com/512x512.png?text=Error+Loading+Image';
+                      }}
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
                   </div>
 
-                  <p className="text-sm text-gray-600 mb-4 line-clamp-2">
-                    {item.displayDescription}
-                  </p>
+                  {/* Item Details */}
+                  <div className="p-4">
+                    <div className="flex items-start justify-between mb-2">
+                      <h3 className="text-lg font-semibold text-gray-900 line-clamp-1">
+                        {item.displayName}
+                      </h3>
+                      <span className={`flex items-center gap-1 px-3 py-1 rounded-full text-sm font-medium text-white ${getRarityColor(item.granted[0].rarity.name)}`}>
+                        <Star className="w-4 h-4" />
+                        {item.granted[0].rarity.name}
+                      </span>
+                    </div>
 
-                  <div className="flex items-center justify-between">
-                    <span className="text-xl font-bold text-primary-600">
-                      {formatPrice(item.price)}
-                    </span>
-                    <div className="flex gap-2">
-                      <button
-                        onClick={() => setSelectedItem(item)}
-                        className="p-2 rounded-lg bg-gray-100 hover:bg-gray-200 transition-colors"
-                        title="Ver detalles"
-                      >
-                        <Info className="w-5 h-5 text-gray-600" />
-                      </button>
-                      <button
-                        className="p-2 rounded-lg bg-primary-600 hover:bg-primary-700 transition-colors"
-                        title="Añadir al carrito"
-                      >
-                        <ShoppingCart className="w-5 h-5 text-white" />
-                      </button>
+                    <p className="text-sm text-gray-600 mb-4 line-clamp-2">
+                      {item.displayDescription}
+                    </p>
+
+                    <div className="flex items-center justify-between">
+                      <span className="text-xl font-bold text-primary-600">
+                        {formatPrice(item.price)}
+                      </span>
+                      <div className="flex gap-2">
+                        <button
+                          onClick={() => setSelectedItem(item)}
+                          className="p-2 rounded-lg bg-gray-100 hover:bg-gray-200 transition-colors"
+                          title="Ver detalles"
+                        >
+                          <Info className="w-5 h-5 text-gray-600" />
+                        </button>
+                        <button
+                          className="p-2 rounded-lg bg-primary-600 hover:bg-primary-700 transition-colors"
+                          title="Añadir al carrito"
+                        >
+                          <ShoppingCart className="w-5 h-5 text-white" />
+                        </button>
+                      </div>
                     </div>
                   </div>
                 </div>
-              </div>
-            ))}
-          </div>
-
-          {filteredItems.length === 0 && !loading && (
-            <div className="text-center py-12">
-              <p className="text-gray-600">
-                No se encontraron items para los filtros seleccionados.
-              </p>
+              ))}
             </div>
-          )}
-        </main>
-      </div>
 
-      {/* Modal de Detalles */}
-      {selectedItem && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-            <div className="relative">
-              <img
-                src={getItemImage(selectedItem)}
-                alt={selectedItem.displayName}
-                className="w-full aspect-video object-cover rounded-t-xl"
-                onError={(e) => {
-                  const target = e.target as HTMLImageElement;
-                  target.src = 'https://via.placeholder.com/512x512.png?text=Error+Loading+Image';
-                }}
-              />
-              <button
-                onClick={() => setSelectedItem(null)}
-                className="absolute top-4 right-4 p-2 rounded-full bg-black/50 hover:bg-black/70 text-white transition-colors"
-              >
-                <X className="w-6 h-6" />
-              </button>
-            </div>
-            
-            <div className="p-6">
-              <div className="flex items-center justify-between mb-4">
-                <h2 className="text-2xl font-bold text-gray-900">
-                  {selectedItem.displayName}
-                </h2>
-                <span className={`px-4 py-1.5 rounded-full text-sm font-medium text-white ${getRarityColor(selectedItem.granted[0].rarity.name)}`}>
-                  {selectedItem.granted[0].rarity.name}
-                </span>
+            {filteredItems.length === 0 && !loading && (
+              <div className="text-center py-12">
+                <p className="text-gray-600">
+                  No se encontraron items para los filtros seleccionados.
+                </p>
               </div>
+            )}
+          </main>
+        </div>
 
-              <p className="text-gray-600 mb-6">
-                {selectedItem.displayDescription}
-              </p>
-
-              {selectedItem.bundle && (
-                <div className="mb-6">
-                  <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                    Contenido del Paquete
-                  </h3>
-                  <p className="text-gray-600">
-                    {selectedItem.bundle.info}
-                  </p>
-                </div>
-              )}
-
-              <div className="flex items-center justify-between">
-                <span className="text-2xl font-bold text-primary-600">
-                  {formatPrice(selectedItem.price)}
-                </span>
+        {/* Modal de Detalles */}
+        {selectedItem && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+            <div className="bg-white rounded-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+              <div className="relative">
+                <img
+                  src={getItemImage(selectedItem)}
+                  alt={selectedItem.displayName}
+                  className="w-full aspect-video object-cover rounded-t-xl"
+                  onError={(e) => {
+                    const target = e.target as HTMLImageElement;
+                    target.src = 'https://via.placeholder.com/512x512.png?text=Error+Loading+Image';
+                  }}
+                />
                 <button
-                  className="px-6 py-3 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors flex items-center gap-2"
+                  onClick={() => setSelectedItem(null)}
+                  className="absolute top-4 right-4 p-2 rounded-full bg-black/50 hover:bg-black/70 text-white transition-colors"
                 >
-                  <ShoppingCart className="w-5 h-5" />
-                  Añadir al Carrito
+                  <X className="w-6 h-6" />
                 </button>
               </div>
+              
+              <div className="p-6">
+                <div className="flex items-center justify-between mb-4">
+                  <h2 className="text-2xl font-bold text-gray-900">
+                    {selectedItem.displayName}
+                  </h2>
+                  <span className={`px-4 py-1.5 rounded-full text-sm font-medium text-white ${getRarityColor(selectedItem.granted[0].rarity.name)}`}>
+                    {selectedItem.granted[0].rarity.name}
+                  </span>
+                </div>
+
+                <p className="text-gray-600 mb-6">
+                  {selectedItem.displayDescription}
+                </p>
+
+                {selectedItem.bundle && (
+                  <div className="mb-6">
+                    <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                      Contenido del Paquete
+                    </h3>
+                    <p className="text-gray-600">
+                      {selectedItem.bundle.info}
+                    </p>
+                  </div>
+                )}
+
+                <div className="flex items-center justify-between">
+                  <span className="text-2xl font-bold text-primary-600">
+                    {formatPrice(selectedItem.price)}
+                  </span>
+                  <button
+                    className="px-6 py-3 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors flex items-center gap-2"
+                  >
+                    <ShoppingCart className="w-5 h-5" />
+                    Añadir al Carrito
+                  </button>
+                </div>
+              </div>
             </div>
           </div>
-        </div>
-      )}
+        )}
+      </div>
     </div>
   );
 };
