@@ -70,8 +70,8 @@ const Home = () => {
               <span className="text-primary-400">Definitivo</span>
             </h1>
             <p className="text-xl md:text-2xl text-gray-200 mb-12 leading-relaxed">
-              Explora nuestra colección de juegos, items exclusivos y contenido<br/>
-              premium para elevar tu experiencia gaming al siguiente nivel.
+              Consigue los mejores ítems de Fortnite hoy mismo. <br/>
+              Skins y accesorios exclusivos para ganar tus partidas.
             </p>
             <div className="flex flex-col sm:flex-row gap-4">
               <Link 
@@ -85,53 +85,6 @@ const Home = () => {
                 Ver Ofertas
                 <ChevronRight className="w-5 h-5" />
               </button>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Features Section - Mejorado */}
-      <section className="py-12 relative bg-gradient-to-b from-gray-900 via-gray-100 to-gray-100">
-        <div className="container mx-auto px-4">
-          <div className="text-center mb-8">
-            <h2 className="text-3xl font-bold text-gray-800 mb-2">¿Por qué elegirnos?</h2>
-            <p className="text-gray-600 text-base max-w-2xl mx-auto">
-              Descubre las ventajas que nos hacen únicos en el mundo gaming
-            </p>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-5xl mx-auto">
-            <div className="bg-white p-6 rounded-xl shadow hover:shadow-md transition-all duration-300">
-              <div className="flex items-center gap-4 mb-3">
-                <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center flex-shrink-0">
-                  <Zap className="w-5 h-5 text-blue-600" />
-                </div>
-                <h3 className="text-lg font-bold text-gray-800">Entrega Instantánea</h3>
-              </div>
-              <p className="text-sm text-gray-600">
-                Recibe tus items y códigos de juego al instante después de tu compra, sin esperas ni complicaciones.
-              </p>
-            </div>
-            <div className="bg-white p-6 rounded-xl shadow hover:shadow-md transition-all duration-300">
-              <div className="flex items-center gap-4 mb-3">
-                <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center flex-shrink-0">
-                  <Star className="w-5 h-5 text-purple-600" />
-                </div>
-                <h3 className="text-lg font-bold text-gray-800">Items Exclusivos</h3>
-              </div>
-              <p className="text-sm text-gray-600">
-                Accede a contenido único y elementos especiales que harán destacar tu experiencia de juego.
-              </p>
-            </div>
-            <div className="bg-white p-6 rounded-xl shadow hover:shadow-md transition-all duration-300">
-              <div className="flex items-center gap-4 mb-3">
-                <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center flex-shrink-0">
-                  <TrendingUp className="w-5 h-5 text-green-600" />
-                </div>
-                <h3 className="text-lg font-bold text-gray-800">Mejores Precios</h3>
-              </div>
-              <p className="text-sm text-gray-600">
-                Garantizamos los mejores precios del mercado con ofertas exclusivas y descuentos especiales.
-              </p>
             </div>
           </div>
         </div>
@@ -200,9 +153,9 @@ const Home = () => {
       <section className="py-20 relative bg-gradient-to-b from-[#D9DBDF] via-white to-white">
         <div className="container mx-auto px-4">
           <div className="text-center mb-12">
-            <h2 className="text-4xl font-bold text-gray-800 mb-4">Últimos Items Agregados</h2>
+            <h2 className="text-4xl font-bold text-gray-800 mb-4">Ítems exclusivos del Battle Pass</h2>
             <p className="text-gray-600 text-lg">
-              Descubre los items más recientes que hemos añadido a nuestra tienda
+              Descubre los items del Battle Pass que hemos añadido a nuestra tienda
             </p>
           </div>
           
@@ -239,33 +192,6 @@ const Home = () => {
             ))}
           </div>
         </div>
-      </section>
-
-      {/* CTA Section - Renovado */}
-      <section className="py-24 relative bg-gradient-to-b from-white via-blue-900 to-purple-900 overflow-hidden">
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(255,255,255,0.1)_0%,transparent_100%)] opacity-50"></div>
-        <div className="container mx-auto px-4 relative z-10">
-          <div className="max-w-4xl mx-auto text-center">
-            <h2 className="text-5xl font-bold mb-6 text-white">
-              ¿Listo para mejorar tu experiencia?
-            </h2>
-            <p className="text-xl mb-12 text-white/90 leading-relaxed">
-              Únete a nuestra comunidad y obtén acceso a ofertas exclusivas, eventos especiales y contenido premium.
-            </p>
-            <Link
-              to="/fortnite-shop"
-              className="inline-flex items-center gap-2 px-8 py-4 bg-white text-primary-900 rounded-xl font-semibold 
-                hover:bg-primary-50 transition-all duration-300 transform hover:scale-105
-                shadow-lg hover:shadow-white/25"
-            >
-              Comenzar Ahora
-              <ChevronRight className="w-5 h-5" />
-            </Link>
-          </div>
-        </div>
-        {/* Decorative elements */}
-        <div className="absolute -top-40 -right-40 w-96 h-96 bg-black/10 rounded-full blur-3xl"></div>
-        <div className="absolute -bottom-40 -left-40 w-96 h-96 bg-black/10 rounded-full blur-3xl"></div>
       </section>
     </div>
   );

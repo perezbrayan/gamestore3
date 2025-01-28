@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { getDailyShop } from '../services/fortniteApi';
-import { ShoppingCart, Star, Info, Loader2, X, Filter } from 'lucide-react';
+import { ShoppingCart, Star, Info, Loader2, X, Filter, ChevronDown, ChevronUp } from 'lucide-react';
 
 interface ShopItem {
   mainId: string;
@@ -58,6 +58,11 @@ const FortniteShop: React.FC = () => {
   const [selectedItem, setSelectedItem] = useState<ShopItem | null>(null);
   const [activeFilters, setActiveFilters] = useState<string[]>([]);
   const [activeRarityFilters, setActiveRarityFilters] = useState<string[]>([]);
+  const [maxPrice, setMaxPrice] = useState(2000);
+  const [currentPriceRange, setCurrentPriceRange] = useState(2000);
+  const [isPriceFilterOpen, setIsPriceFilterOpen] = useState(false);
+  const [isCategoriesOpen, setIsCategoriesOpen] = useState(false);
+  const [isRarityOpen, setIsRarityOpen] = useState(false);
 
   // Categorías disponibles con iconos SVG
   const categories = [
@@ -140,13 +145,11 @@ const FortniteShop: React.FC = () => {
     const fetchItems = async () => {
       try {
         const data = await getDailyShop();
-        // Filtrado más exhaustivo de items musicales
         const filteredItems = data.filter((item: ShopItem) => {
           const nameLower = item.displayName.toLowerCase();
           const descLower = item.displayDescription.toLowerCase();
           const grantedTypes = item.granted.map(g => g.type.name.toLowerCase());
           
-          // Lista exhaustiva de términos musicales a filtrar
           const musicTerms = [
             'music', 'música', 'track', 'pista', 
             'remix', 'beat', 'song', 'canción', 
@@ -155,7 +158,6 @@ const FortniteShop: React.FC = () => {
             'rhythm'
           ];
 
-          // Verificar si algún término musical está presente
           const hasMusicTerm = musicTerms.some(term => 
             nameLower.includes(term) || 
             descLower.includes(term) ||
@@ -167,6 +169,10 @@ const FortniteShop: React.FC = () => {
         
         setItems(filteredItems);
         setFilteredItems(filteredItems);
+        
+        const maxItemPrice = Math.max(...filteredItems.map(item => item.price.finalPrice));
+        setMaxPrice(maxItemPrice);
+        setCurrentPriceRange(maxItemPrice);
       } catch (err) {
         setError('Error al cargar la tienda. Por favor, intenta más tarde.');
       } finally {
@@ -177,11 +183,10 @@ const FortniteShop: React.FC = () => {
     fetchItems();
   }, []);
 
-  // Función para manejar los filtros de rareza
   const handleRarityFilter = (rarityId: string) => {
     if (rarityId === 'all') {
       setActiveRarityFilters([]);
-      applyAllFilters(activeFilters, []);
+      applyAllFilters(activeFilters, [], currentPriceRange);
       return;
     }
 
@@ -190,43 +195,39 @@ const FortniteShop: React.FC = () => {
         ? prev.filter(f => f !== rarityId)
         : [...prev, rarityId];
       
-      applyAllFilters(activeFilters, newFilters);
+      applyAllFilters(activeFilters, newFilters, currentPriceRange);
       return newFilters;
     });
   };
 
-  // Función para manejar los filtros de categoría
   const handleFilter = (categoryId: string) => {
     setActiveFilters(prev => {
       const newFilters = prev.includes(categoryId)
         ? prev.filter(f => f !== categoryId)
         : [...prev, categoryId];
       
-      applyAllFilters(newFilters, activeRarityFilters);
+      applyAllFilters(newFilters, activeRarityFilters, currentPriceRange);
       return newFilters;
     });
   };
 
-  // Función para aplicar todos los filtros
-  const applyAllFilters = (categoryFilters: string[], rarityFilters: string[]) => {
+  const handlePriceChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const newPrice = parseInt(event.target.value);
+    setCurrentPriceRange(newPrice);
+    applyAllFilters(activeFilters, activeRarityFilters, newPrice);
+  };
+
+  const applyAllFilters = (categoryFilters: string[], rarityFilters: string[], priceLimit: number = currentPriceRange) => {
     let filtered = items;
 
-    // Aplicar filtros de categoría
     if (categoryFilters.length > 0) {
-      filtered = filtered.filter(item => {
-        // Para bundles, verificar si el item tiene múltiples granted items
-        if (categoryFilters.includes('bundle') && item.granted.length > 1) {
-          return true;
-        }
-        
-        // Verificar si alguno de los items granted coincide con las categorías seleccionadas
-        return item.granted.some(grantedItem => 
+      filtered = filtered.filter(item =>
+        item.granted.some(grantedItem =>
           categoryFilters.includes(grantedItem.type.id.toLowerCase())
-        );
-      });
+        )
+      );
     }
 
-    // Aplicar filtros de rareza
     if (rarityFilters.length > 0) {
       filtered = filtered.filter(item =>
         item.granted.some(grantedItem =>
@@ -235,20 +236,19 @@ const FortniteShop: React.FC = () => {
       );
     }
 
+    filtered = filtered.filter(item => item.price.finalPrice <= priceLimit);
+
     setFilteredItems(filtered);
   };
 
   const getItemImage = (item: ShopItem): string => {
-    // Intentar obtener la imagen del display asset
     if (item.displayAssets?.[0]?.full_background) {
       return item.displayAssets[0].full_background;
     }
 
-    // Intentar obtener la imagen del primer item granted
     if (item.granted?.[0]) {
       const grantedItem = item.granted[0];
       
-      // Intentar diferentes propiedades de imagen en orden de preferencia
       if (grantedItem.images?.full_background) {
         return grantedItem.images.full_background;
       }
@@ -266,7 +266,6 @@ const FortniteShop: React.FC = () => {
       }
     }
 
-    // Si no se encuentra ninguna imagen, usar un placeholder
     return 'https://via.placeholder.com/512x512.png?text=No+Image';
   };
 
@@ -331,100 +330,132 @@ const FortniteShop: React.FC = () => {
           </p>
         </div>
 
-        {/* Filtros de Rareza */}
         <div className="flex flex-col lg:flex-row gap-8">
           {/* Sidebar de Filtros */}
           <div className="lg:w-64">
-            {/* Filtros de Rareza */}
-            <div className="flex flex-col gap-2 p-4 bg-white rounded-lg shadow-sm">
-              <div className="flex items-center gap-2 text-gray-800">
-                <Filter className="w-4 h-4" />
-                <span className="font-medium">Filtrar por Rareza</span>
-              </div>
-              <div className="flex flex-col gap-2">
-                {rarities.map((rarity) => (
-                  <button
-                    key={rarity.id}
-                    onClick={() => handleRarityFilter(rarity.id)}
-                    className={`flex items-center gap-2 px-3 py-2 rounded-md transition-all ${
-                      rarity.id === 'all'
-                        ? activeRarityFilters.length === 0
-                          ? 'bg-gray-100 text-gray-900'
-                          : 'hover:bg-gray-50 text-gray-700'
-                        : activeRarityFilters.includes(rarity.id)
-                        ? `bg-${rarity.color}/10 text-${rarity.color}`
-                        : `hover:bg-${rarity.color}/5 text-gray-700`
-                    }`}
-                  >
-                    <div
-                      className={`w-2 h-2 rounded-full ${
-                        rarity.id === 'all'
-                          ? 'bg-gray-700'
-                          : `bg-${rarity.color}`
-                      }`}
-                    />
-                    {rarity.name}
-                  </button>
-                ))}
-              </div>
+            {/* Categorías */}
+            <div className="bg-white rounded-xl shadow-md overflow-hidden">
+              <button
+                onClick={() => setIsCategoriesOpen(!isCategoriesOpen)}
+                className="w-full px-6 py-4 flex items-center justify-between text-gray-900 hover:bg-gray-50 transition-colors"
+              >
+                <div className="flex items-center gap-3">
+                  <Filter className="w-5 h-5 text-primary-600" />
+                  <span className="font-medium">Categorías</span>
+                </div>
+                {isCategoriesOpen ? (
+                  <ChevronUp className="w-5 h-5" />
+                ) : (
+                  <ChevronDown className="w-5 h-5" />
+                )}
+              </button>
+              
+              {isCategoriesOpen && (
+                <div className="p-6 pt-2">
+                  <div className="grid grid-cols-2 gap-3">
+                    {categories.map((category) => (
+                      <button
+                        key={category.id}
+                        onClick={() => handleFilter(category.id)}
+                        className={`flex flex-col items-center gap-2 p-3 rounded-xl transition-all ${
+                          activeFilters.includes(category.id)
+                            ? 'bg-primary-600 text-white'
+                            : 'bg-gray-50 hover:bg-gray-100 text-gray-700'
+                        }`}
+                      >
+                        {category.icon(activeFilters.includes(category.id))}
+                        <span className="text-sm font-medium">{category.name}</span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
 
-            {/* Categorías */}
-            <div className="bg-white rounded-xl shadow-md p-6 sticky top-24">
-              <div className="flex items-center gap-3 mb-6 border-b border-gray-100 pb-4">
-                <Filter className="w-6 h-6 text-primary-600" />
-                <h2 className="text-xl font-bold text-gray-900">Categorías</h2>
-              </div>
-              
-              <div className="flex flex-col gap-3">
-                {categories.map(category => (
-                  <button
-                    key={category.id}
-                    onClick={() => handleFilter(category.id)}
-                    className={`
-                      group flex items-center gap-3 p-3 rounded-lg
-                      transition-all duration-200
-                      ${activeFilters.includes(category.id)
-                        ? 'bg-primary-600 text-white shadow-md'
-                        : 'bg-gray-50 text-gray-700 hover:bg-gray-100'
-                      }
-                    `}
-                  >
-                    <div className={`
-                      w-10 h-10 rounded-lg flex items-center justify-center
-                      ${activeFilters.includes(category.id)
-                        ? 'bg-white/10'
-                        : 'bg-white shadow-sm group-hover:shadow-md'
-                      }
-                    `}>
-                      {category.icon(activeFilters.includes(category.id))}
-                    </div>
-                    <span className="font-medium">{category.name}</span>
-                    {activeFilters.includes(category.id) && (
-                      <span className="ml-auto text-sm bg-white/20 px-2 py-0.5 rounded-full">
-                        {filteredItems.filter(item => 
-                          category.id === 'bundle' 
-                            ? item.granted.length > 1
-                            : item.granted.some(g => g.type.id.toLowerCase() === category.id)
-                        ).length}
-                      </span>
-                    )}
-                  </button>
-                ))}
-
-                {activeFilters.length > 0 && (
-                  <button
-                    onClick={() => {
-                      setActiveFilters([]);
-                      setFilteredItems(items);
-                    }}
-                    className="mt-3 px-4 py-3 rounded-lg text-red-600 hover:bg-red-50 transition-colors flex items-center gap-2 justify-center border border-red-200"
-                  >
-                    <X className="w-4 h-4" />
-                    <span>Limpiar filtros</span>
-                  </button>
+            {/* Filtro de Precio */}
+            <div className="mt-6 bg-white rounded-xl shadow-md overflow-hidden">
+              <button
+                onClick={() => setIsPriceFilterOpen(!isPriceFilterOpen)}
+                className="w-full px-6 py-4 flex items-center justify-between text-gray-900 hover:bg-gray-50 transition-colors"
+              >
+                <div className="flex items-center gap-3">
+                  <Filter className="w-5 h-5 text-primary-600" />
+                  <span className="font-medium">Filtrar por Precio</span>
+                </div>
+                {isPriceFilterOpen ? (
+                  <ChevronUp className="w-5 h-5" />
+                ) : (
+                  <ChevronDown className="w-5 h-5" />
                 )}
-              </div>
+              </button>
+              
+              {isPriceFilterOpen && (
+                <div className="p-6 pt-2">
+                  <div className="space-y-4">
+                    <div className="flex justify-between text-sm text-gray-600">
+                      <span>0 V-Bucks</span>
+                      <span>{currentPriceRange} V-Bucks</span>
+                    </div>
+                    <input
+                      type="range"
+                      min="0"
+                      max={maxPrice}
+                      value={currentPriceRange}
+                      onChange={handlePriceChange}
+                      className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-primary-600"
+                    />
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Rarezas */}
+            <div className="mt-6 bg-white rounded-xl shadow-md overflow-hidden">
+              <button
+                onClick={() => setIsRarityOpen(!isRarityOpen)}
+                className="w-full px-6 py-4 flex items-center justify-between text-gray-900 hover:bg-gray-50 transition-colors"
+              >
+                <div className="flex items-center gap-3">
+                  <Filter className="w-5 h-5 text-primary-600" />
+                  <span className="font-medium">Rareza</span>
+                </div>
+                {isRarityOpen ? (
+                  <ChevronUp className="w-5 h-5" />
+                ) : (
+                  <ChevronDown className="w-5 h-5" />
+                )}
+              </button>
+              
+              {isRarityOpen && (
+                <div className="p-6 pt-2">
+                  <div className="flex flex-col gap-2">
+                    {rarities.map((rarity) => (
+                      <button
+                        key={rarity.id}
+                        onClick={() => handleRarityFilter(rarity.id)}
+                        className={`flex items-center gap-2 px-3 py-2 rounded-md transition-all ${
+                          rarity.id === 'all'
+                            ? activeRarityFilters.length === 0
+                              ? 'bg-gray-100 text-gray-900'
+                              : 'hover:bg-gray-50 text-gray-700'
+                            : activeRarityFilters.includes(rarity.id)
+                            ? `bg-${rarity.color}/10 text-${rarity.color}`
+                            : `hover:bg-${rarity.color}/5 text-gray-700`
+                        }`}
+                      >
+                        <div
+                          className={`w-2 h-2 rounded-full ${
+                            rarity.id === 'all'
+                              ? 'bg-gray-700'
+                              : `bg-${rarity.color}`
+                          }`}
+                        />
+                        {rarity.name}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
           </div>
 
