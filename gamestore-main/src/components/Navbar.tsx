@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Menu, X, ShoppingCart, Search, User, Gamepad2, Home, Gift, Sparkles, Tag } from 'lucide-react';
+import { Menu, X, ShoppingCart, Search, User, Gamepad2, Home, Gift, Sparkles, Tag, Trash2 } from 'lucide-react';
 import logo from '../assets/logo.svg';
 
 interface NavLinkProps {
@@ -39,9 +39,152 @@ const SearchBar = () => (
   </div>
 );
 
+const CartDropdown = ({ isOpen, cartItems = [] }) => {
+  if (!isOpen) return null;
+
+  return (
+    <div className="absolute top-full right-0 mt-2 w-80 bg-white rounded-xl shadow-lg border border-gray-100 overflow-hidden z-50">
+      <div className="p-4 border-b border-gray-100">
+        <h3 className="font-semibold text-gray-800">Carrito de Compras</h3>
+      </div>
+      
+      {cartItems.length === 0 ? (
+        <div className="p-4 text-center text-gray-500">
+          <ShoppingCart className="w-12 h-12 mx-auto mb-2 text-gray-300" />
+          <p>Tu carrito está vacío</p>
+        </div>
+      ) : (
+        <>
+          <div className="max-h-96 overflow-y-auto">
+            {cartItems.map((item) => (
+              <div key={item.id} className="p-4 border-b border-gray-100 flex items-center gap-3">
+                <img 
+                  src={item.image} 
+                  alt={item.name} 
+                  className="w-16 h-16 rounded-lg object-cover"
+                />
+                <div className="flex-1">
+                  <h4 className="font-medium text-gray-800">{item.name}</h4>
+                  <p className="text-primary-600 font-semibold">{item.price} V-Bucks</p>
+                </div>
+                <button className="p-2 hover:bg-gray-50 rounded-lg text-gray-400 hover:text-red-500 transition-colors">
+                  <Trash2 className="w-5 h-5" />
+                </button>
+              </div>
+            ))}
+          </div>
+          <div className="p-4 bg-gray-50">
+            <div className="flex justify-between mb-4">
+              <span className="font-medium text-gray-800">Total:</span>
+              <span className="font-bold text-primary-600">1,200 V-Bucks</span>
+            </div>
+            <Link 
+              to="/checkout"
+              className="w-full px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white rounded-lg font-semibold transition-colors flex items-center justify-center gap-2"
+            >
+              Proceder al Pago
+              <ShoppingCart className="w-5 h-5" />
+            </Link>
+          </div>
+        </>
+      )}
+    </div>
+  );
+};
+
+const UserDropdown = ({ isOpen }) => {
+  if (!isOpen) return null;
+
+  return (
+    <div className="absolute top-full right-0 mt-2 w-80 bg-white rounded-xl shadow-lg border border-gray-100 overflow-hidden z-50">
+      <div className="p-6">
+        <h3 className="font-semibold text-gray-800 text-lg mb-4">Iniciar Sesión</h3>
+        <form className="space-y-4">
+          <div>
+            <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
+              Correo Electrónico
+            </label>
+            <input
+              type="email"
+              id="email"
+              className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary-100 focus:border-primary-600 transition-all"
+              placeholder="ejemplo@correo.com"
+            />
+          </div>
+          <div>
+            <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">
+              Contraseña
+            </label>
+            <input
+              type="password"
+              id="password"
+              className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary-100 focus:border-primary-600 transition-all"
+              placeholder="••••••••"
+            />
+          </div>
+          <button
+            type="submit"
+            className="w-full px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white rounded-lg font-semibold transition-colors"
+          >
+            Iniciar Sesión
+          </button>
+        </form>
+
+        <div className="mt-4 pt-4 border-t border-gray-100 space-y-2">
+          <Link 
+            to="/registro"
+            className="block text-center text-primary-600 hover:text-primary-700 font-medium"
+          >
+            ¿Jugador nuevo? Crear cuenta
+          </Link>
+          <Link 
+            to="/recuperar-password"
+            className="block text-center text-gray-500 hover:text-gray-600 text-sm"
+          >
+            ¿Olvidaste tu contraseña?
+          </Link>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+const useClickOutside = (ref: React.RefObject<HTMLElement>, handler: () => void) => {
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (ref.current && !ref.current.contains(event.target as Node)) {
+        handler();
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [ref, handler]);
+};
+
 const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isCartOpen, setIsCartOpen] = useState(false);
+  const [isUserOpen, setIsUserOpen] = useState(false);
   const [cartCount] = useState(0);
+  
+  const cartDropdownRef = useRef<HTMLDivElement>(null);
+  const userDropdownRef = useRef<HTMLDivElement>(null);
+
+  useClickOutside(cartDropdownRef, () => setIsCartOpen(false));
+  useClickOutside(userDropdownRef, () => setIsUserOpen(false));
+
+  // Ejemplo de items del carrito - Esto debería venir de tu estado global
+  const cartItems = [
+    {
+      id: 1,
+      name: "Skin Legendaria",
+      price: 800,
+      image: "https://example.com/skin-image.jpg"
+    }
+  ];
 
   const navLinks = [
     { to: "/", icon: <Home className="w-5 h-5" />, label: "Inicio" },
@@ -76,20 +219,38 @@ const Navbar = () => {
               ))}
             </div>
             
-            {/* User Menu */}
-            <button className="p-2 hover:bg-gray-50/50 rounded-lg transition-all duration-300">
-              <User className="w-5 h-5 text-gray-600" />
-            </button>
+            {/* User Menu with Dropdown */}
+            <div className="relative" ref={userDropdownRef}>
+              <button 
+                className="p-2 hover:bg-gray-50/50 rounded-lg transition-all duration-300"
+                onClick={() => {
+                  setIsUserOpen(!isUserOpen);
+                  setIsCartOpen(false);
+                }}
+              >
+                <User className="w-5 h-5 text-gray-600" />
+              </button>
+              <UserDropdown isOpen={isUserOpen} />
+            </div>
             
-            {/* Cart */}
-            <button className="p-2 hover:bg-gray-50/50 rounded-lg transition-all duration-300 relative">
-              <ShoppingCart className="w-5 h-5 text-gray-600" />
-              {cartCount > 0 && (
-                <span className="absolute -top-1 -right-1 bg-primary-500 text-white text-xs w-4 h-4 rounded-full flex items-center justify-center">
-                  {cartCount}
-                </span>
-              )}
-            </button>
+            {/* Cart Button with Dropdown */}
+            <div className="relative" ref={cartDropdownRef}>
+              <button 
+                className="p-2 hover:bg-gray-50/50 rounded-lg transition-all duration-300 relative"
+                onClick={() => {
+                  setIsCartOpen(!isCartOpen);
+                  setIsUserOpen(false);
+                }}
+              >
+                <ShoppingCart className="w-5 h-5 text-gray-600" />
+                {cartCount > 0 && (
+                  <span className="absolute -top-1 -right-1 bg-primary-500 text-white text-xs w-4 h-4 rounded-full flex items-center justify-center">
+                    {cartCount}
+                  </span>
+                )}
+              </button>
+              <CartDropdown isOpen={isCartOpen} cartItems={cartItems} />
+            </div>
           </div>
 
           {/* Mobile Menu Button */}

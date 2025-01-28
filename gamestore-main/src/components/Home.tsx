@@ -65,9 +65,9 @@ const Home = () => {
         <div className="w-full max-w-[1440px] mx-auto px-4 relative z-10">
           <div className="max-w-3xl">
             <h1 className="text-7xl md:text-8xl font-bold text-white mb-8 leading-tight">
-              Tu Destino<br/>
-              Gaming<br/>
-              <span className="text-primary-400">Definitivo</span>
+              Tus items y<br/>
+              accesorios<br/>
+              <span className="text-primary-400">Definitivos</span>
             </h1>
             <p className="text-xl md:text-2xl text-gray-200 mb-12 leading-relaxed">
               Consigue los mejores ítems de Fortnite hoy mismo. <br/>
@@ -149,50 +149,89 @@ const Home = () => {
         </div>
       </section>
 
-      {/* Latest Items Section */}
+      {/* Testimonios Section - Reemplaza Latest Items Section */}
       <section className="py-20 relative bg-gradient-to-b from-[#D9DBDF] via-white to-white">
         <div className="container mx-auto px-4">
           <div className="text-center mb-12">
-            <h2 className="text-4xl font-bold text-gray-800 mb-4">Ítems exclusivos del Battle Pass</h2>
+            <h2 className="text-4xl font-bold text-gray-800 mb-4">Lo que dicen nuestros clientes</h2>
             <p className="text-gray-600 text-lg">
-              Descubre los items del Battle Pass que hemos añadido a nuestra tienda
+              Descubre por qué somos la opción preferida de miles de gamers
             </p>
           </div>
           
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 max-w-7xl mx-auto">
-            {latestItems?.slice(0, 4).map((item) => (
-              <div
-                key={item.mainId}
-                className="bg-white rounded-2xl shadow-md hover:shadow-lg transition-all duration-300 overflow-hidden group"
-              >
-                <div className="relative aspect-square bg-gradient-to-br from-gray-100 to-gray-200 p-6">
-                  <img
-                    src={item.displayAssets[0]?.full_background}
-                    alt={item.displayName}
-                    className="w-full h-full object-contain transform group-hover:scale-110 transition-transform duration-300"
-                  />
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-6xl mx-auto">
+            <div className="bg-white p-8 rounded-2xl shadow-md hover:shadow-lg transition-all duration-300">
+              <div className="flex items-center mb-6">
+                <div className="flex-shrink-0">
+                  <div className="w-12 h-12 bg-primary-100 rounded-full flex items-center justify-center">
+                    <Star className="w-6 h-6 text-primary-600" />
+                  </div>
                 </div>
-                <div className="p-6">
-                  <h3 className="text-xl font-bold text-gray-800 mb-2">{item.displayName}</h3>
-                  <div className="flex items-center justify-between">
-                    <span className="text-primary-600 font-semibold">
-                      {item.price.finalPrice} V-Bucks
-                    </span>
-                    <div className={`px-3 py-1 rounded-full text-sm ${
-                      item.rarity.id === 'Legendary' ? 'bg-orange-100 text-orange-600' :
-                      item.rarity.id === 'Epic' ? 'bg-purple-100 text-purple-600' :
-                      item.rarity.id === 'Rare' ? 'bg-blue-100 text-blue-600' :
-                      'bg-gray-100 text-gray-600'
-                    }`}>
-                      {item.rarity.name}
-                    </div>
+                <div className="ml-4">
+                  <h4 className="text-lg font-bold text-gray-800">Carlos R.</h4>
+                  <div className="flex text-yellow-400">
+                    <Star className="w-4 h-4 fill-current" />
+                    <Star className="w-4 h-4 fill-current" />
+                    <Star className="w-4 h-4 fill-current" />
+                    <Star className="w-4 h-4 fill-current" />
+                    <Star className="w-4 h-4 fill-current" />
                   </div>
                 </div>
               </div>
-            ))}
+              <p className="text-gray-600">
+                "El mejor servicio que he encontrado para comprar items de Fortnite. Entrega inmediata y precios increíbles."
+              </p>
+            </div>
+
+            <div className="bg-white p-8 rounded-2xl shadow-md hover:shadow-lg transition-all duration-300">
+              <div className="flex items-center mb-6">
+                <div className="flex-shrink-0">
+                  <div className="w-12 h-12 bg-primary-100 rounded-full flex items-center justify-center">
+                    <Star className="w-6 h-6 text-primary-600" />
+                  </div>
+                </div>
+                <div className="ml-4">
+                  <h4 className="text-lg font-bold text-gray-800">Ana M.</h4>
+                  <div className="flex text-yellow-400">
+                    <Star className="w-4 h-4 fill-current" />
+                    <Star className="w-4 h-4 fill-current" />
+                    <Star className="w-4 h-4 fill-current" />
+                    <Star className="w-4 h-4 fill-current" />
+                    <Star className="w-4 h-4 fill-current" />
+                  </div>
+                </div>
+              </div>
+              <p className="text-gray-600">
+                "Excelente atención al cliente. Tuve un problema con mi compra y lo resolvieron de inmediato. ¡100% recomendado!"
+              </p>
+            </div>
+
+            <div className="bg-white p-8 rounded-2xl shadow-md hover:shadow-lg transition-all duration-300">
+              <div className="flex items-center mb-6">
+                <div className="flex-shrink-0">
+                  <div className="w-12 h-12 bg-primary-100 rounded-full flex items-center justify-center">
+                    <Star className="w-6 h-6 text-primary-600" />
+                  </div>
+                </div>
+                <div className="ml-4">
+                  <h4 className="text-lg font-bold text-gray-800">Diego L.</h4>
+                  <div className="flex text-yellow-400">
+                    <Star className="w-4 h-4 fill-current" />
+                    <Star className="w-4 h-4 fill-current" />
+                    <Star className="w-4 h-4 fill-current" />
+                    <Star className="w-4 h-4 fill-current" />
+                    <Star className="w-4 h-4 fill-current" />
+                  </div>
+                </div>
+              </div>
+              <p className="text-gray-600">
+                "Los mejores precios del mercado y un proceso de compra super sencillo. ¡Seguiré comprando aquí!"
+              </p>
+            </div>
           </div>
         </div>
       </section>
+
     </div>
   );
 };
