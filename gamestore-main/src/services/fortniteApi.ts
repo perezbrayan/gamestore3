@@ -1,109 +1,105 @@
-const API_KEY = 'eafc4329-54aeed01-a90cd52b-f749534c';
-const BASE_URL = 'https://fortniteapi.io/v2';
+import axios from 'axios';
 
-export interface FortnitePrice {
-  regularPrice: number;
-  finalPrice: number;
-  floorPrice: number;
-}
-
-export interface FortniteImage {
-  icon: string;
-  featured: string | null;
-  background: string | null;
-  full_background: string;
-}
-
-export interface FortniteGranted {
-  id: string;
-  type: {
-    id: string;
-    name: string;
-  };
-  name: string;
-  description: string;
-  image: string;
-  video: string | null;
-  series: {
-    id: string;
-    name: string;
-    colors: string[];
-  } | null;
-  rarity: {
-    id: string;
-    name: string;
-  };
-}
-
-export interface FortniteItem {
-  mainId: string;
+interface FortniteItem {
   displayName: string;
   displayDescription: string;
-  displayType: string;
-  mainType: string;
-  offerId: string;
-  displayAssets: {
-    displayAsset: string;
-    materialInstance: string;
-    url: string;
-    flipbook?: string;
-    background_texture?: string;
-    background?: string;
-    full_background: string;
-  }[];
-  firstReleaseDate: string;
-  previousReleaseDate: string;
-  giftAllowed: boolean;
-  buyAllowed: boolean;
-  price: FortnitePrice;
+  price: {
+    regularPrice: number;
+    finalPrice: number;
+  };
+  granted: Array<{
+    type: {
+      name: string;
+    };
+  }>;
   rarity: {
-    id: string;
-    name: string;
-    color: string;
+    value: string;
   };
-  series: {
-    id: string;
-    name: string;
-    colors: string[];
-  } | null;
-  banner: {
-    id: string;
-    name: string;
-    intensity: string;
-  } | null;
-  granted: FortniteGranted[];
-  images: FortniteImage;
-  gameplayTags: string[];
-  added: string;
-  shopHistory: string[];
-}
-
-export interface FortniteShopResponse {
-  result: boolean;
-  fullShop: boolean;
-  lastUpdate: {
-    date: string;
-    uid: string;
-  };
-  currentRotation: {
+  images: {
+    icon: string;
     featured: string;
-    daily: string;
   };
-  shop: FortniteItem[];
 }
 
-export const getDailyShop = async (): Promise<FortniteItem[]> => {
+export const getDailyShop = async () => {
   try {
-    const response = await fetch(`${BASE_URL}/shop?lang=es`, {
+    const response = await fetch('https://fortniteapi.io/v2/shop?lang=es', {
       headers: {
-        'Authorization': API_KEY
+        'Authorization': 'eafc4329-54aeed01-a90cd52b-f749534c'
       }
     });
-    
-    const data: FortniteShopResponse = await response.json();
-    return data.shop || [];
+
+    if (!response.ok) {
+      throw new Error('Error al obtener datos de la tienda: ' + response.statusText);
+    }
+
+    const data = await response.json();
+    console.log('Respuesta de la API:', data);
+
+    if (!data.shop || !Array.isArray(data.shop)) {
+      throw new Error('Formato de respuesta inválido: no se encontró shop o no es un array');
+    }
+
+    // Términos relacionados con música para filtrar
+    const musicTerms = [
+      'music', 'música', 'track', 'pista', 
+      'remix', 'beat', 'song', 'canción', 
+      'lobby', 'audio', 'sound', 'sonido',
+      'tune', 'melodía', 'melody', 'ritmo',
+      'rhythm', 'baile', 'dance'
+    ];
+
+    const items = data.shop
+      .filter((item: any) => {
+        // Verificar si es un item de música
+        if (!item || !item.mainId) return false;
+        
+        const nameLower = item.displayName?.toLowerCase() || '';
+        const descLower = item.displayDescription?.toLowerCase() || '';
+        const mainTypeLower = item.mainType?.toLowerCase() || '';
+        
+        // Excluir si contiene términos relacionados con música
+        return !musicTerms.some(term => 
+          nameLower.includes(term) || 
+          descLower.includes(term) || 
+          mainTypeLower.includes(term) ||
+          mainTypeLower.includes('emote') // Excluir emotes también ya que suelen ser música
+        );
+      })
+      .map((item: any) => ({
+        mainId: item.mainId,
+        displayName: item.displayName || '',
+        displayDescription: item.displayDescription || '',
+        displayType: item.displayType || '',
+        mainType: item.mainType || '',
+        displayAssets: item.displayAssets || [],
+        price: {
+          regularPrice: item.price?.regularPrice || 0,
+          finalPrice: item.price?.finalPrice || 0,
+          floorPrice: item.price?.floorPrice || 0
+        },
+        rarity: {
+          id: item.rarity?.id || '',
+          name: item.rarity?.name || ''
+        },
+        section: {
+          id: item.section?.id || '',
+          name: item.section?.name || ''
+        },
+        granted: item.granted || [],
+        buyAllowed: item.buyAllowed || false,
+        categories: item.categories || [],
+        banner: item.banner,
+        giftAllowed: item.giftAllowed || false,
+        groupIndex: item.groupIndex || 0,
+        offerTag: item.offerTag || null,
+        priority: item.priority || 0
+      }));
+
+    console.log('Items procesados (sin música):', items);
+    return items;
   } catch (error) {
-    console.error('Error fetching Fortnite shop:', error);
-    return [];
+    console.error('Error en getDailyShop:', error);
+    throw new Error('Error al cargar los ítems de la tienda.');
   }
-}; 
+};

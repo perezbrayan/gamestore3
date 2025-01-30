@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Menu, X, ShoppingCart, Search, User, Gamepad2, Home, Gift, Sparkles, Tag, Trash2 } from 'lucide-react';
+import { Menu, X, ShoppingCart, Search, User, Gamepad2, Home, Gift, Sparkles, Tag, Trash2, MessageSquare, Users } from 'lucide-react';
 import logo from '../assets/logo.svg';
 
 interface NavLinkProps {
@@ -92,56 +92,27 @@ const CartDropdown = ({ isOpen, cartItems = [] }) => {
   );
 };
 
-const UserDropdown = ({ isOpen }) => {
+const UserDropdown = ({ isOpen }: { isOpen: boolean }) => {
   if (!isOpen) return null;
 
   return (
-    <div className="absolute top-full right-0 mt-2 w-80 bg-white rounded-xl shadow-lg border border-gray-100 overflow-hidden z-50">
-      <div className="p-6">
-        <h3 className="font-semibold text-gray-800 text-lg mb-4">Iniciar Sesión</h3>
-        <form className="space-y-4">
-          <div>
-            <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
-              Correo Electrónico
-            </label>
-            <input
-              type="email"
-              id="email"
-              className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary-100 focus:border-primary-600 transition-all"
-              placeholder="ejemplo@correo.com"
-            />
-          </div>
-          <div>
-            <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">
-              Contraseña
-            </label>
-            <input
-              type="password"
-              id="password"
-              className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary-100 focus:border-primary-600 transition-all"
-              placeholder="••••••••"
-            />
-          </div>
-          <button
-            type="submit"
-            className="w-full px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white rounded-lg font-semibold transition-colors"
+    <div className="absolute right-0 mt-2 w-72 bg-white rounded-xl shadow-lg py-2 z-50">
+      {/* Usuario no autenticado */}
+      <div className="px-4 py-3">
+        <div className="text-center">
+          <h3 className="text-lg font-semibold text-gray-900 mb-2">Bienvenido</h3>
+          <p className="text-sm text-gray-600 mb-4">Inicia sesión para continuar</p>
+          <Link 
+            to="/login" 
+            className="block w-full px-4 py-2 mb-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors"
           >
             Iniciar Sesión
-          </button>
-        </form>
-
-        <div className="mt-4 pt-4 border-t border-gray-100 space-y-2">
-          <Link 
-            to="/registro"
-            className="block text-center text-primary-600 hover:text-primary-700 font-medium"
-          >
-            ¿Jugador nuevo? Crear cuenta
           </Link>
           <Link 
-            to="/recuperar-password"
-            className="block text-center text-gray-500 hover:text-gray-600 text-sm"
+            to="/register" 
+            className="block w-full px-4 py-2 text-primary-600 bg-primary-50 rounded-lg hover:bg-primary-100 transition-colors"
           >
-            ¿Olvidaste tu contraseña?
+            Crear Cuenta
           </Link>
         </div>
       </div>
@@ -188,6 +159,8 @@ const Navbar = () => {
 
   const navLinks = [
     { to: "/", icon: <Home className="w-5 h-5" />, label: "Inicio" },
+    { to: "/crew", icon: <Users className="w-5 h-5" />, label: "Crew" },
+    { to: "/bot", icon: <MessageSquare className="w-5 h-5" />, label: "Bot" },
     { to: "/fortnite-shop", icon: <Gamepad2 className="w-5 h-5" />, label: "Fortnite" },
   ];
 
