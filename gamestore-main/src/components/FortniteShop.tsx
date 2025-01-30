@@ -29,12 +29,10 @@ const FortniteShop: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
 
   // Estados para los filtros
-  const [categoryFilters, setCategoryFilters] = useState<string[]>([]);
   const [rarityFilters, setRarityFilters] = useState<string[]>([]);
   const [priceRange, setPriceRange] = useState({ min: 0, max: 2000 });
   
   // Estados para los acordeones
-  const [isCategoriesOpen, setIsCategoriesOpen] = useState(true);
   const [isRarityOpen, setIsRarityOpen] = useState(false);
   const [isPriceFilterOpen, setIsPriceFilterOpen] = useState(false);
 
@@ -44,7 +42,7 @@ const FortniteShop: React.FC = () => {
 
   useEffect(() => {
     setFilteredItems(applyAllFilters(items));
-  }, [items, categoryFilters, rarityFilters, priceRange]);
+  }, [items, rarityFilters, priceRange]);
 
   const fetchItems = async () => {
     try {
@@ -56,15 +54,6 @@ const FortniteShop: React.FC = () => {
       setError(err instanceof Error ? err.message : 'Error al cargar los items');
       setLoading(false);
     }
-  };
-
-  const handleFilter = (category: string) => {
-    setCategoryFilters(prev => {
-      const normalized = category.toLowerCase();
-      return prev.includes(normalized)
-        ? prev.filter(c => c !== normalized)
-        : [...prev, normalized];
-    });
   };
 
   const handleRarityFilter = (rarity: string) => {
@@ -87,14 +76,6 @@ const FortniteShop: React.FC = () => {
   const applyAllFilters = (items: ShopItem[]) => {
     let filtered = [...items];
 
-    if (categoryFilters.length > 0) {
-      filtered = filtered.filter(item =>
-        item.categories?.some(category =>
-          categoryFilters.includes(category.toLowerCase())
-        )
-      );
-    }
-
     if (rarityFilters.length > 0) {
       filtered = filtered.filter(item =>
         item.rarity?.name && rarityFilters.includes(item.rarity.name.toLowerCase())
@@ -111,11 +92,6 @@ const FortniteShop: React.FC = () => {
 
     return filtered;
   };
-
-  // Obtener categorías únicas
-  const uniqueCategories = Array.from(new Set(
-    items.flatMap(item => item.categories || [])
-  )).filter(Boolean);
 
   // Obtener rarezas únicas
   const uniqueRarities = Array.from(new Set(
@@ -154,37 +130,42 @@ const FortniteShop: React.FC = () => {
       <div className="flex flex-col lg:flex-row gap-8">
         {/* Sidebar de Filtros */}
         <div className="lg:w-64">
-          {/* Categorías */}
+          {/* Filtro de Rareza */}
           <div className="bg-white rounded-xl shadow-md overflow-hidden">
             <button
-              onClick={() => setIsCategoriesOpen(!isCategoriesOpen)}
+              onClick={() => setIsRarityOpen(!isRarityOpen)}
               className="w-full px-6 py-5 flex items-center justify-between text-gray-900 hover:bg-gray-50 transition-colors"
             >
               <div className="flex items-center gap-3">
                 <Filter className="w-5 h-5 text-primary-600" />
-                <span className="font-medium">Categorías</span>
+                <span className="font-medium">Rareza</span>
               </div>
-              {isCategoriesOpen ? (
+              {isRarityOpen ? (
                 <ChevronUp className="w-5 h-5" />
               ) : (
                 <ChevronDown className="w-5 h-5" />
               )}
             </button>
             
-            {isCategoriesOpen && (
+            {isRarityOpen && (
               <div className="p-6">
-                <div className="grid grid-cols-2 gap-3">
-                  {uniqueCategories.map((category) => (
+                <div className="flex flex-col gap-3">
+                  {uniqueRarities.map((rarity) => (
                     <button
-                      key={category}
-                      onClick={() => handleFilter(category)}
-                      className={`flex items-center justify-center p-4 rounded-xl transition-all ${
-                        categoryFilters.includes(category.toLowerCase())
+                      key={rarity}
+                      onClick={() => handleRarityFilter(rarity)}
+                      className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${
+                        rarityFilters.includes(rarity.toLowerCase())
                           ? 'bg-primary-600 text-white'
-                          : 'bg-gray-50 hover:bg-gray-100 text-gray-700'
+                          : 'hover:bg-gray-100 text-gray-700'
                       }`}
                     >
-                      <span className="text-sm font-medium">{category}</span>
+                      <div
+                        className={`w-2 h-2 rounded-full bg-primary-600 ${
+                          rarityFilters.includes(rarity.toLowerCase()) ? 'bg-white' : ''
+                        }`}
+                      />
+                      {rarity}
                     </button>
                   ))}
                 </div>
@@ -225,49 +206,6 @@ const FortniteShop: React.FC = () => {
                     name="max"
                     className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-primary-600"
                   />
-                </div>
-              </div>
-            )}
-          </div>
-
-          {/* Rarezas */}
-          <div className="mt-6 bg-white rounded-xl shadow-md overflow-hidden">
-            <button
-              onClick={() => setIsRarityOpen(!isRarityOpen)}
-              className="w-full px-6 py-5 flex items-center justify-between text-gray-900 hover:bg-gray-50 transition-colors"
-            >
-              <div className="flex items-center gap-3">
-                <Filter className="w-5 h-5 text-primary-600" />
-                <span className="font-medium">Rareza</span>
-              </div>
-              {isRarityOpen ? (
-                <ChevronUp className="w-5 h-5" />
-              ) : (
-                <ChevronDown className="w-5 h-5" />
-              )}
-            </button>
-            
-            {isRarityOpen && (
-              <div className="p-6">
-                <div className="flex flex-col gap-3">
-                  {uniqueRarities.map((rarity) => (
-                    <button
-                      key={rarity}
-                      onClick={() => handleRarityFilter(rarity)}
-                      className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${
-                        rarityFilters.includes(rarity.toLowerCase())
-                          ? 'bg-primary-600 text-white'
-                          : 'hover:bg-gray-100 text-gray-700'
-                      }`}
-                    >
-                      <div
-                        className={`w-2 h-2 rounded-full bg-primary-600 ${
-                          rarityFilters.includes(rarity.toLowerCase()) ? 'bg-white' : ''
-                        }`}
-                      />
-                      {rarity}
-                    </button>
-                  ))}
                 </div>
               </div>
             )}
