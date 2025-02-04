@@ -321,7 +321,7 @@ router.post('/products', verifyToken, isAdmin, upload.single('image'), async (re
     }
 
     // Crear la URL de la imagen relativa al servidor
-    const imageUrl = `/uploads/products/${req.file.filename}`;
+    const imageUrl = `/db/uploads/products/${req.file.filename}`;
 
     const [productId] = await db('roblox_products').insert({
       title,

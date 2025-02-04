@@ -23,6 +23,8 @@ import {
 } from '@mui/material';
 import { adminService, RobloxProduct } from '../../services/adminService';
 
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3002';
+
 export const ProductManagement = () => {
   const [products, setProducts] = useState<RobloxProduct[]>([]);
   const [open, setOpen] = useState(false);
@@ -33,6 +35,7 @@ export const ProductManagement = () => {
     description: '',
     price: '',
     image: null as File | null,
+    imagePreview: '' as string,
     amount: '',
     type: 'vbucks'
   });
@@ -97,6 +100,7 @@ export const ProductManagement = () => {
         description: '',
         price: '',
         image: null,
+        imagePreview: '',
         amount: '',
         type: 'vbucks'
       });
@@ -147,12 +151,16 @@ export const ProductManagement = () => {
       <Grid container spacing={3}>
         {products.map((product) => (
           <Grid item xs={12} sm={6} md={4} key={product.id}>
-            <Card>
+            <Card sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
               {product.image_url && (
                 <CardMedia
                   component="img"
-                  height="140"
-                  image={product.image_url}
+                  sx={{
+                    height: 200,
+                    objectFit: 'contain',
+                    backgroundColor: '#f5f5f5'
+                  }}
+                  image={`${API_URL}${product.image_url}`}
                   alt={product.title}
                 />
               )}
@@ -224,7 +232,15 @@ export const ProductManagement = () => {
             onChange={(e) => {
               const file = e.target.files?.[0];
               if (file) {
-                setNewProduct({ ...newProduct, image: file });
+                const reader = new FileReader();
+                reader.onloadend = () => {
+                  setNewProduct({
+                    ...newProduct,
+                    image: file,
+                    imagePreview: reader.result as string
+                  });
+                };
+                reader.readAsDataURL(file);
               }
             }}
           />
@@ -233,10 +249,18 @@ export const ProductManagement = () => {
               Subir Imagen
             </Button>
           </label>
-          {newProduct.image && (
-            <Typography variant="body2" color="textSecondary">
-              Imagen seleccionada: {newProduct.image.name}
-            </Typography>
+          {newProduct.imagePreview && (
+            <Box sx={{ mt: 2, mb: 2, textAlign: 'center' }}>
+              <img 
+                src={newProduct.imagePreview} 
+                alt="Vista previa" 
+                style={{ 
+                  maxWidth: '100%', 
+                  maxHeight: '200px', 
+                  objectFit: 'contain' 
+                }} 
+              />
+            </Box>
           )}
           <FormControl fullWidth margin="dense">
             <InputLabel>Tipo</InputLabel>
