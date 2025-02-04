@@ -7,7 +7,11 @@ import FortniteShop from './components/FortniteShop';
 import Bot from './components/Bot';
 import Crew from './components/Crew';
 import Register from './components/Register';
-import Login from './components/Login';
+import UserLogin from './components/Login'; 
+import AdminLogin from './pages/Login'; 
+import AdminPanel from './pages/AdminPanel';
+import VBucksManager from './pages/VBucksManager';
+import UserManager from './pages/UserManager';
 
 const App = () => {
   return (
@@ -21,7 +25,11 @@ const App = () => {
             <Route path="/bot" element={<Bot />} />
             <Route path="/crew" element={<Crew />} />
             <Route path="/register" element={<Register />} />
-            <Route path="/login" element={<Login />} />
+            <Route path="/login" element={<UserLogin />} />
+            <Route path="/admin/login" element={<AdminLogin />} /> 
+            <Route path="/admin" element={<AdminPanel />} />
+            <Route path="/admin/vbucks" element={<VBucksManager />} />
+            <Route path="/admin/users" element={<UserManager />} />
           </Routes>
         </main>
         <Footer />

@@ -1,13 +1,19 @@
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { Mail, Lock, ArrowRight, Eye, EyeOff } from 'lucide-react';
+import axios from 'axios';
+
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3002';
 
 const Login = () => {
+  const navigate = useNavigate();
   const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({
-    email: '',
+    username: '',
     password: ''
   });
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({
@@ -16,9 +22,30 @@ const Login = () => {
     });
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log('Datos del formulario:', formData);
+    setError('');
+    setLoading(true);
+
+    try {
+      const response = await axios.post(`${API_URL}/db/api/auth/login`, formData);
+
+      if (response.data.success) {
+        // Guardar el token
+        localStorage.setItem('token', response.data.token);
+        // Guardar información del usuario
+        localStorage.setItem('user', JSON.stringify(response.data.user));
+        // Redirigir al inicio
+        navigate('/');
+      } else {
+        setError(response.data.message || 'Error al iniciar sesión');
+      }
+    } catch (err: any) {
+      console.error('Error en el login:', err);
+      setError(err.response?.data?.message || 'Error al intentar iniciar sesión');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -35,20 +62,26 @@ const Login = () => {
           </div>
 
           <div className="bg-white rounded-2xl shadow-xl p-8">
+            {error && (
+              <div className="mb-6 p-4 bg-red-50 border border-red-200 text-red-600 rounded-xl">
+                {error}
+              </div>
+            )}
+
             <form onSubmit={handleSubmit} className="space-y-6">
               <div>
-                <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
-                  Correo electrónico
+                <label htmlFor="username" className="block text-sm font-medium text-gray-700 mb-2">
+                  Nombre de usuario
                 </label>
                 <div className="relative">
                   <input
-                    type="email"
-                    id="email"
-                    name="email"
-                    value={formData.email}
+                    type="text"
+                    id="username"
+                    name="username"
+                    value={formData.username}
                     onChange={handleChange}
                     className="w-full px-4 py-3 pl-11 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary-100 focus:border-primary-600 transition-all"
-                    placeholder="ejemplo@correo.com"
+                    placeholder="Tu nombre de usuario"
                     required
                   />
                   <Mail className="absolute left-3 top-3.5 w-5 h-5 text-gray-400" />
@@ -83,10 +116,11 @@ const Login = () => {
 
               <button
                 type="submit"
-                className="w-full px-6 py-4 bg-primary-600 hover:bg-primary-700 text-white rounded-xl font-semibold transition-all duration-300 flex items-center justify-center gap-2 group"
+                disabled={loading}
+                className={`w-full px-6 py-4 bg-primary-600 hover:bg-primary-700 text-white rounded-xl font-semibold transition-all duration-300 flex items-center justify-center gap-2 group ${loading ? 'opacity-70 cursor-not-allowed' : ''}`}
               >
-                <span>Iniciar Sesión</span>
-                <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                <span>{loading ? 'Iniciando sesión...' : 'Iniciar Sesión'}</span>
+                {!loading && <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />}
               </button>
             </form>
 
@@ -105,4 +139,4 @@ const Login = () => {
   );
 };
 
-export default Login; 
+export default Login;

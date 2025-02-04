@@ -95,26 +95,88 @@ const CartDropdown = ({ isOpen, cartItems = [] }) => {
 const UserDropdown = ({ isOpen }: { isOpen: boolean }) => {
   if (!isOpen) return null;
 
+  const userJson = localStorage.getItem('user');
+  const user = userJson ? JSON.parse(userJson) : null;
+
+  const handleLogout = () => {
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+    window.location.reload();
+  };
+
+  if (!user) {
+    return (
+      <div className="absolute right-0 mt-2 w-72 bg-white rounded-xl shadow-lg py-2 z-50">
+        <div className="px-4 py-3">
+          <div className="text-center">
+            <h3 className="text-lg font-semibold text-gray-900 mb-2">Bienvenido</h3>
+            <p className="text-sm text-gray-600 mb-4">Inicia sesión para continuar</p>
+            <Link 
+              to="/login" 
+              className="block w-full px-4 py-2 mb-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors"
+            >
+              Iniciar Sesión
+            </Link>
+            <Link 
+              to="/register" 
+              className="block w-full px-4 py-2 text-primary-600 bg-primary-50 rounded-lg hover:bg-primary-100 transition-colors"
+            >
+              Crear Cuenta
+            </Link>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="absolute right-0 mt-2 w-72 bg-white rounded-xl shadow-lg py-2 z-50">
-      {/* Usuario no autenticado */}
-      <div className="px-4 py-3">
-        <div className="text-center">
-          <h3 className="text-lg font-semibold text-gray-900 mb-2">Bienvenido</h3>
-          <p className="text-sm text-gray-600 mb-4">Inicia sesión para continuar</p>
-          <Link 
-            to="/login" 
-            className="block w-full px-4 py-2 mb-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors"
-          >
-            Iniciar Sesión
-          </Link>
-          <Link 
-            to="/register" 
-            className="block w-full px-4 py-2 text-primary-600 bg-primary-50 rounded-lg hover:bg-primary-100 transition-colors"
-          >
-            Crear Cuenta
-          </Link>
+      <div className="px-4 py-3 border-b border-gray-100">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-full bg-primary-100 flex items-center justify-center">
+            <User className="w-6 h-6 text-primary-600" />
+          </div>
+          <div>
+            <h3 className="font-semibold text-gray-900">{user.username}</h3>
+            <p className="text-sm text-gray-500">{user.email}</p>
+          </div>
         </div>
+      </div>
+      
+      <div className="py-2">
+        <Link 
+          to="/profile" 
+          className="flex items-center gap-2 px-4 py-2 text-gray-700 hover:bg-gray-50 transition-colors"
+        >
+          <User className="w-5 h-5" />
+          <span>Mi Perfil</span>
+        </Link>
+        <Link 
+          to="/purchases" 
+          className="flex items-center gap-2 px-4 py-2 text-gray-700 hover:bg-gray-50 transition-colors"
+        >
+          <Tag className="w-5 h-5" />
+          <span>Mis Compras</span>
+        </Link>
+        {user.role === 'admin' && (
+          <Link 
+            to="/admin" 
+            className="flex items-center gap-2 px-4 py-2 text-gray-700 hover:bg-gray-50 transition-colors"
+          >
+            <Users className="w-5 h-5" />
+            <span>Panel Admin</span>
+          </Link>
+        )}
+      </div>
+
+      <div className="border-t border-gray-100 pt-2">
+        <button
+          onClick={handleLogout}
+          className="w-full flex items-center gap-2 px-4 py-2 text-red-600 hover:bg-red-50 transition-colors"
+        >
+          <X className="w-5 h-5" />
+          <span>Cerrar Sesión</span>
+        </button>
       </div>
     </div>
   );
@@ -156,6 +218,9 @@ const Navbar = () => {
       image: "https://example.com/skin-image.jpg"
     }
   ];
+
+  const userJson = localStorage.getItem('user');
+  const user = userJson ? JSON.parse(userJson) : null;
 
   const navLinks = [
     { to: "/", icon: <Home className="w-5 h-5" />, label: "Inicio" },
@@ -201,7 +266,13 @@ const Navbar = () => {
                   setIsCartOpen(false);
                 }}
               >
-                <User className="w-5 h-5 text-gray-600" />
+                {user ? (
+                  <div className="w-10 h-10 rounded-full bg-primary-100 flex items-center justify-center">
+                    <User className="w-6 h-6 text-primary-600" />
+                  </div>
+                ) : (
+                  <User className="w-5 h-5 text-gray-600" />
+                )}
               </button>
               <UserDropdown isOpen={isUserOpen} />
             </div>
@@ -252,25 +323,52 @@ const Navbar = () => {
                 </NavLink>
               ))}
               <div className="border-t border-gray-100 mt-4 pt-4 space-y-2">
-                <Link 
-                  to="/perfil" 
-                  className="flex items-center gap-2 px-4 py-2 text-gray-600 hover:text-primary-500 hover:bg-gray-50/50 rounded-lg transition-all duration-300"
-                >
-                  <User className="w-5 h-5" />
-                  <span>Mi Perfil</span>
-                </Link>
-                <Link 
-                  to="/carrito" 
-                  className="flex items-center gap-2 px-4 py-2 text-gray-600 hover:text-primary-500 hover:bg-gray-50/50 rounded-lg transition-all duration-300"
-                >
-                  <ShoppingCart className="w-5 h-5" />
-                  <span>Carrito</span>
-                  {cartCount > 0 && (
-                    <span className="ml-auto bg-primary-500 text-white text-xs px-2 py-1 rounded-full">
-                      {cartCount}
-                    </span>
-                  )}
-                </Link>
+                {user ? (
+                  <div>
+                    <Link 
+                      to="/profile" 
+                      className="flex items-center gap-2 px-4 py-2 text-gray-600 hover:text-primary-500 hover:bg-gray-50/50 rounded-lg transition-all duration-300"
+                    >
+                      <User className="w-5 h-5" />
+                      <span>Mi Perfil</span>
+                    </Link>
+                    <Link 
+                      to="/purchases" 
+                      className="flex items-center gap-2 px-4 py-2 text-gray-600 hover:text-primary-500 hover:bg-gray-50/50 rounded-lg transition-all duration-300"
+                    >
+                      <Tag className="w-5 h-5" />
+                      <span>Mis Compras</span>
+                    </Link>
+                    <button
+                      onClick={() => {
+                        localStorage.removeItem('token');
+                        localStorage.removeItem('user');
+                        window.location.reload();
+                      }}
+                      className="flex items-center gap-2 px-4 py-2 text-red-600 hover:bg-red-50 transition-colors"
+                    >
+                      <X className="w-5 h-5" />
+                      <span>Cerrar Sesión</span>
+                    </button>
+                  </div>
+                ) : (
+                  <div>
+                    <Link 
+                      to="/login" 
+                      className="flex items-center gap-2 px-4 py-2 text-gray-600 hover:text-primary-500 hover:bg-gray-50/50 rounded-lg transition-all duration-300"
+                    >
+                      <User className="w-5 h-5" />
+                      <span>Iniciar Sesión</span>
+                    </Link>
+                    <Link 
+                      to="/register" 
+                      className="flex items-center gap-2 px-4 py-2 text-gray-600 hover:text-primary-500 hover:bg-gray-50/50 rounded-lg transition-all duration-300"
+                    >
+                      <User className="w-5 h-5" />
+                      <span>Crear Cuenta</span>
+                    </Link>
+                  </div>
+                )}
               </div>
             </div>
           </div>
