@@ -20,7 +20,7 @@ const Bot: React.FC = () => {
 
   const checkBotStatus = async () => {
     try {
-      const response = await fetch(`${apiConfig.botURL}/bot2/api/bot-status`, {
+      const response = await fetch(`${apiConfig.botURL}/bot2/api/bot-status?botId=bot2`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',

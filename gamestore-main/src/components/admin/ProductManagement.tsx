@@ -150,44 +150,106 @@ export const ProductManagement = () => {
 
       <Grid container spacing={3}>
         {products.map((product) => (
-          <Grid item xs={12} sm={6} md={4} key={product.id}>
-            <Card sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+          <Grid item xs={12} sm={6} md={4} lg={3} key={product.id}>
+            <Card 
+              sx={{ 
+                height: '100%', 
+                display: 'flex', 
+                flexDirection: 'column',
+                background: 'linear-gradient(to bottom right, #ffffff, #f8f9fa)',
+                borderRadius: '16px',
+                boxShadow: '0 8px 16px rgba(0,0,0,0.1)',
+                transition: 'transform 0.2s, box-shadow 0.2s',
+                '&:hover': {
+                  transform: 'translateY(-5px)',
+                  boxShadow: '0 12px 20px rgba(0,0,0,0.15)',
+                }
+              }}
+            >
               {product.image_url && (
                 <CardMedia
                   component="img"
                   sx={{
                     height: 200,
                     objectFit: 'contain',
-                    backgroundColor: '#f5f5f5'
+                    backgroundColor: '#f8f9fa',
+                    borderRadius: '16px 16px 0 0',
+                    padding: '1rem'
                   }}
                   image={`${API_URL}${product.image_url}`}
                   alt={product.title}
                 />
               )}
-              <CardContent>
-                <Typography variant="h6" gutterBottom>
+              <CardContent sx={{ flexGrow: 1, p: 3 }}>
+                <Typography 
+                  variant="h6" 
+                  gutterBottom 
+                  sx={{ 
+                    fontWeight: 'bold',
+                    color: '#2c3e50',
+                    mb: 2
+                  }}
+                >
                   {product.title}
                 </Typography>
-                <Typography color="textSecondary">
+                <Typography 
+                  sx={{ 
+                    color: '#2ecc71',
+                    fontSize: '1.25rem',
+                    fontWeight: 'bold',
+                    mb: 2
+                  }}
+                >
                   Precio: ${product.price}
                 </Typography>
                 {product.amount && (
-                  <Typography color="textSecondary">
-                    Cantidad: {product.amount}
+                  <Typography 
+                    sx={{ 
+                      color: '#7f8c8d',
+                      mb: 1,
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 1
+                    }}
+                  >
+                    <span style={{ fontWeight: 'bold' }}>Cantidad:</span> {product.amount}
                   </Typography>
                 )}
-                <Typography variant="body2">
+                <Typography 
+                  variant="body2" 
+                  sx={{ 
+                    color: '#34495e',
+                    mb: 2,
+                    lineHeight: 1.6
+                  }}
+                >
                   {product.description}
                 </Typography>
-                <Typography color="textSecondary" sx={{ mt: 1 }}>
-                  Tipo: {product.type}
+                <Typography 
+                  sx={{ 
+                    color: '#7f8c8d',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 1
+                  }}
+                >
+                  <span style={{ fontWeight: 'bold' }}>Tipo:</span> {product.type}
                 </Typography>
               </CardContent>
-              <CardActions>
+              <CardActions sx={{ p: 2, pt: 0 }}>
                 <Button 
-                  size="small" 
+                  size="medium" 
                   color="error"
+                  variant="contained"
                   onClick={() => handleDeleteProduct(product.id)}
+                  sx={{
+                    borderRadius: '8px',
+                    textTransform: 'none',
+                    boxShadow: 'none',
+                    '&:hover': {
+                      boxShadow: '0 4px 8px rgba(231, 76, 60, 0.2)',
+                    }
+                  }}
                 >
                   Eliminar
                 </Button>
