@@ -1,16 +1,19 @@
 const knex = require('knex');
 const knexfile = require('../knexfile');
 
-// Crear la conexión a la base de datos
-const db = knex(knexfile.development);
+const environment = process.env.NODE_ENV || 'development';
+const config = knexfile[environment];
+
+const db = knex(config);
 
 // Verificar la conexión
 db.raw('SELECT 1')
   .then(() => {
     console.log('Conexión a la base de datos establecida correctamente');
+    console.log('Ambiente:', environment);
   })
   .catch((error) => {
-    console.error('Error al conectar con la base de datos:', error);
+    console.error('Error al conectar con la base de datos:', error.message);
   });
 
 module.exports = { db };

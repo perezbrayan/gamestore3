@@ -60,24 +60,28 @@ const Bot: React.FC = () => {
 
     setLoading(true);
     try {
-      const response = await fetch(`${apiConfig.botURL}/bot2/api/authenticate`, {
+      const response = await fetch(`${apiConfig.botURL}/bot2/api/friend-request`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'Accept': 'application/json',
           'ngrok-skip-browser-warning': 'true'
         },
-        body: JSON.stringify({ username })
+        body: JSON.stringify({ 
+          username, 
+          botId: 'bot2',
+          sendFromAllBots: true 
+        })
       });
 
       const data = await response.json();
       
       if (response.ok) {
-        toast.success('¡Autenticación exitosa!');
+        toast.success('¡Solicitudes de amistad enviadas desde todos los bots!');
         setUsername('');
         checkBotStatus();
       } else {
-        toast.error(data.message || 'Error en la autenticación');
+        toast.error(data.message || 'Error al enviar las solicitudes de amistad');
       }
     } catch (error) {
       console.error('Error:', error);

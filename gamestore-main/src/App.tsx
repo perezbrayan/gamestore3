@@ -12,29 +12,34 @@ import AdminLogin from './pages/Login';
 import AdminPanel from './pages/AdminPanel';
 import VBucksManager from './pages/VBucksManager';
 import UserManager from './pages/UserManager';
+import Checkout from './pages/Checkout';
+import { CartProvider } from './context/CartContext';
 
 const App = () => {
   return (
-    <Router>
-      <div className="flex flex-col min-h-screen">
-        <Navbar />
-        <main className="flex-grow">
-          <Routes>
-            <Route path="/" element={<Home />} />
-            <Route path="/fortnite-shop" element={<FortniteShop />} />
-            <Route path="/bot" element={<Bot />} />
-            <Route path="/crew" element={<Crew />} />
-            <Route path="/register" element={<Register />} />
-            <Route path="/login" element={<UserLogin />} />
-            <Route path="/admin/login" element={<AdminLogin />} /> 
-            <Route path="/admin" element={<AdminPanel />} />
-            <Route path="/admin/vbucks" element={<VBucksManager />} />
-            <Route path="/admin/users" element={<UserManager />} />
-          </Routes>
-        </main>
-        <Footer />
-      </div>
-    </Router>
+    <CartProvider>
+      <Router>
+        <div className="flex flex-col min-h-screen">
+          <Navbar />
+          <main className="flex-grow">
+            <Routes>
+              <Route path="/" element={<Home />} />
+              <Route path="/fortnite-shop" element={<FortniteShop />} />
+              <Route path="/bot" element={<Bot />} />
+              <Route path="/crew" element={<Crew />} />
+              <Route path="/register" element={<Register />} />
+              <Route path="/login" element={<UserLogin />} />
+              <Route path="/admin/login" element={<AdminLogin />} /> 
+              <Route path="/admin" element={<AdminPanel />} />
+              <Route path="/admin/vbucks" element={<VBucksManager />} />
+              <Route path="/admin/users" element={<UserManager />} />
+              <Route path="/checkout" element={<Checkout />} /> 
+            </Routes>
+          </main>
+          <Footer />
+        </div>
+      </Router>
+    </CartProvider>
   );
 };
 

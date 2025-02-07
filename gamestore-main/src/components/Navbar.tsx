@@ -1,7 +1,9 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Link, useLocation } from 'react-router-dom';
-import { Menu, X, ShoppingCart, Search, User, Gamepad2, Home, Gift, Sparkles, Tag, Trash2, MessageSquare, Users } from 'lucide-react';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { Menu, X, ShoppingCart, Search, User, Gamepad2, Home, Gift, Sparkles, Tag, Trash2, MessageSquare, Users, LogOut } from 'lucide-react';
 import logo from '../assets/logo.svg';
+import { useCart } from '../context/CartContext';
+import { useClickOutside } from '../hooks/useClickOutside';
 
 interface NavLinkProps {
   to: string;
@@ -39,70 +41,19 @@ const SearchBar = () => (
   </div>
 );
 
-const CartDropdown = ({ isOpen, cartItems = [] }) => {
-  if (!isOpen) return null;
-
-  return (
-    <div className="absolute top-full right-0 mt-2 w-80 bg-white rounded-xl shadow-lg border border-gray-100 overflow-hidden z-50">
-      <div className="p-4 border-b border-gray-100">
-        <h3 className="font-semibold text-gray-800">Carrito de Compras</h3>
-      </div>
-      
-      {cartItems.length === 0 ? (
-        <div className="p-4 text-center text-gray-500">
-          <ShoppingCart className="w-12 h-12 mx-auto mb-2 text-gray-300" />
-          <p>Tu carrito está vacío</p>
-        </div>
-      ) : (
-        <>
-          <div className="max-h-96 overflow-y-auto">
-            {cartItems.map((item) => (
-              <div key={item.id} className="p-4 border-b border-gray-100 flex items-center gap-3">
-                <img 
-                  src={item.image} 
-                  alt={item.name} 
-                  className="w-16 h-16 rounded-lg object-cover"
-                />
-                <div className="flex-1">
-                  <h4 className="font-medium text-gray-800">{item.name}</h4>
-                  <p className="text-primary-600 font-semibold">{item.price} V-Bucks</p>
-                </div>
-                <button className="p-2 hover:bg-gray-50 rounded-lg text-gray-400 hover:text-red-500 transition-colors">
-                  <Trash2 className="w-5 h-5" />
-                </button>
-              </div>
-            ))}
-          </div>
-          <div className="p-4 bg-gray-50">
-            <div className="flex justify-between mb-4">
-              <span className="font-medium text-gray-800">Total:</span>
-              <span className="font-bold text-primary-600">1,200 V-Bucks</span>
-            </div>
-            <Link 
-              to="/checkout"
-              className="w-full px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white rounded-lg font-semibold transition-colors flex items-center justify-center gap-2"
-            >
-              Proceder al Pago
-              <ShoppingCart className="w-5 h-5" />
-            </Link>
-          </div>
-        </>
-      )}
-    </div>
-  );
-};
-
-const UserDropdown = ({ isOpen }: { isOpen: boolean }) => {
-  if (!isOpen) return null;
-
+const UserDropdown = ({ isOpen }) => {
+  const navigate = useNavigate();
   const userJson = localStorage.getItem('user');
   const user = userJson ? JSON.parse(userJson) : null;
 
   const handleLogout = () => {
     localStorage.removeItem('token');
     localStorage.removeItem('user');
+    navigate('/');
     window.location.reload();
   };
+
+  if (!isOpen) return null;
 
   if (!user) {
     return (
@@ -158,15 +109,6 @@ const UserDropdown = ({ isOpen }: { isOpen: boolean }) => {
           <Tag className="w-5 h-5" />
           <span>Mis Compras</span>
         </Link>
-        {user.role === 'admin' && (
-          <Link 
-            to="/admin" 
-            className="flex items-center gap-2 px-4 py-2 text-gray-700 hover:bg-gray-50 transition-colors"
-          >
-            <Users className="w-5 h-5" />
-            <span>Panel Admin</span>
-          </Link>
-        )}
       </div>
 
       <div className="border-t border-gray-100 pt-2">
@@ -174,7 +116,7 @@ const UserDropdown = ({ isOpen }: { isOpen: boolean }) => {
           onClick={handleLogout}
           className="w-full flex items-center gap-2 px-4 py-2 text-red-600 hover:bg-red-50 transition-colors"
         >
-          <X className="w-5 h-5" />
+          <LogOut className="w-5 h-5" />
           <span>Cerrar Sesión</span>
         </button>
       </div>
@@ -182,45 +124,117 @@ const UserDropdown = ({ isOpen }: { isOpen: boolean }) => {
   );
 };
 
-const useClickOutside = (ref: React.RefObject<HTMLElement>, handler: () => void) => {
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (ref.current && !ref.current.contains(event.target as Node)) {
-        handler();
-      }
-    };
+const CartDropdown = ({ isOpen, cartItems = [], onRemoveItem }) => {
+  if (!isOpen) return null;
 
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
-  }, [ref, handler]);
+  const total = cartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+
+  return (
+    <div className="fixed right-4 top-20 w-96 bg-white rounded-2xl shadow-2xl border border-gray-100 overflow-hidden z-50">
+      {/* Header */}
+      <div className="p-6 bg-gradient-to-r from-primary-600 to-primary-700">
+        <div className="flex items-center justify-between text-white mb-2">
+          <h3 className="text-xl font-bold">Mi Carrito</h3>
+          <div className="flex items-center gap-2">
+            <ShoppingCart className="w-5 h-5" />
+            <span className="text-sm">{cartItems.length} item(s)</span>
+          </div>
+        </div>
+      </div>
+      
+      {/* Content */}
+      {cartItems.length === 0 ? (
+        <div className="p-8 text-center">
+          <div className="w-20 h-20 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-4">
+            <ShoppingCart className="w-10 h-10 text-gray-300" />
+          </div>
+          <h4 className="text-lg font-medium text-gray-900 mb-2">Tu carrito está vacío</h4>
+          <p className="text-gray-500 text-sm">¡Agrega algunos items para empezar!</p>
+        </div>
+      ) : (
+        <>
+          {/* Items List */}
+          <div className="max-h-[400px] overflow-y-auto">
+            {cartItems.map((item) => (
+              <div 
+                key={item.mainId} 
+                className="p-4 hover:bg-gray-50 transition-colors border-b border-gray-100 relative group"
+              >
+                <div className="flex gap-4">
+                  {/* Image */}
+                  <div className="w-20 h-20 rounded-lg overflow-hidden bg-gray-100">
+                    <img 
+                      src={item.image} 
+                      alt={item.displayName} 
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                  
+                  {/* Details */}
+                  <div className="flex-1 min-w-0">
+                    <h4 className="font-medium text-gray-900 mb-1 pr-8">{item.displayName}</h4>
+                    <div className="flex items-center gap-2 mb-2">
+                      <Gift className="w-4 h-4 text-primary-500" />
+                      <span className="text-sm text-gray-500">Regalo Especial</span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <span className="text-lg font-bold text-primary-600">{item.price}</span>
+                        <span className="text-sm text-gray-500">V-Bucks</span>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  {/* Remove Button */}
+                  <button 
+                    onClick={() => onRemoveItem(item.mainId)}
+                    className="absolute top-4 right-4 p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-full transition-all duration-200"
+                  >
+                    <Trash2 className="w-5 h-5" />
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+          
+          {/* Footer */}
+          <div className="p-6 bg-gray-50">
+            <div className="flex items-center justify-between mb-4">
+              <span className="text-gray-600">Total</span>
+              <div className="flex items-center gap-2">
+                <span className="text-2xl font-bold text-primary-600">{total}</span>
+                <span className="text-gray-500">V-Bucks</span>
+              </div>
+            </div>
+            <Link 
+              to="/checkout"
+              className="w-full py-3 px-4 bg-primary-600 hover:bg-primary-700 text-white rounded-xl font-semibold transition-colors flex items-center justify-center gap-2 shadow-lg shadow-primary-600/20"
+            >
+              <span>Proceder al Pago</span>
+              <ShoppingCart className="w-5 h-5" />
+            </Link>
+          </div>
+        </>
+      )}
+    </div>
+  );
 };
 
 const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [isCartOpen, setIsCartOpen] = useState(false);
   const [isUserOpen, setIsUserOpen] = useState(false);
-  const [cartCount] = useState(0);
+  const { items: cartItems, removeItem, isOpen: isCartOpen, toggleCart, closeCart } = useCart();
   
   const cartDropdownRef = useRef<HTMLDivElement>(null);
   const userDropdownRef = useRef<HTMLDivElement>(null);
 
-  useClickOutside(cartDropdownRef, () => setIsCartOpen(false));
+  useClickOutside(cartDropdownRef, () => closeCart());
   useClickOutside(userDropdownRef, () => setIsUserOpen(false));
 
-  // Ejemplo de items del carrito - Esto debería venir de tu estado global
-  const cartItems = [
-    {
-      id: 1,
-      name: "Skin Legendaria",
-      price: 800,
-      image: "https://example.com/skin-image.jpg"
-    }
-  ];
+  const cartCount = cartItems.reduce((sum, item) => sum + item.quantity, 0);
 
-  const userJson = localStorage.getItem('user');
-  const user = userJson ? JSON.parse(userJson) : null;
+  const location = useLocation();
+  const isActive = (path: string) => location.pathname === path;
 
   const navLinks = [
     { to: "/", icon: <Home className="w-5 h-5" />, label: "Inicio" },
@@ -263,16 +277,10 @@ const Navbar = () => {
                 className="p-2 hover:bg-gray-50/50 rounded-lg transition-all duration-300"
                 onClick={() => {
                   setIsUserOpen(!isUserOpen);
-                  setIsCartOpen(false);
+                  closeCart();
                 }}
               >
-                {user ? (
-                  <div className="w-10 h-10 rounded-full bg-primary-100 flex items-center justify-center">
-                    <User className="w-6 h-6 text-primary-600" />
-                  </div>
-                ) : (
-                  <User className="w-5 h-5 text-gray-600" />
-                )}
+                <User className="w-5 h-5 text-gray-600" />
               </button>
               <UserDropdown isOpen={isUserOpen} />
             </div>
@@ -282,18 +290,22 @@ const Navbar = () => {
               <button 
                 className="p-2 hover:bg-gray-50/50 rounded-lg transition-all duration-300 relative"
                 onClick={() => {
-                  setIsCartOpen(!isCartOpen);
+                  toggleCart();
                   setIsUserOpen(false);
                 }}
               >
                 <ShoppingCart className="w-5 h-5 text-gray-600" />
                 {cartCount > 0 && (
-                  <span className="absolute -top-1 -right-1 bg-primary-500 text-white text-xs w-4 h-4 rounded-full flex items-center justify-center">
+                  <span className="absolute -top-1 -right-1 bg-primary-500 text-white text-xs w-5 h-5 rounded-full flex items-center justify-center">
                     {cartCount}
                   </span>
                 )}
               </button>
-              <CartDropdown isOpen={isCartOpen} cartItems={cartItems} />
+              <CartDropdown 
+                isOpen={isCartOpen} 
+                cartItems={cartItems} 
+                onRemoveItem={removeItem}
+              />
             </div>
           </div>
 
@@ -323,52 +335,31 @@ const Navbar = () => {
                 </NavLink>
               ))}
               <div className="border-t border-gray-100 mt-4 pt-4 space-y-2">
-                {user ? (
-                  <div>
-                    <Link 
-                      to="/profile" 
-                      className="flex items-center gap-2 px-4 py-2 text-gray-600 hover:text-primary-500 hover:bg-gray-50/50 rounded-lg transition-all duration-300"
-                    >
-                      <User className="w-5 h-5" />
-                      <span>Mi Perfil</span>
-                    </Link>
-                    <Link 
-                      to="/purchases" 
-                      className="flex items-center gap-2 px-4 py-2 text-gray-600 hover:text-primary-500 hover:bg-gray-50/50 rounded-lg transition-all duration-300"
-                    >
-                      <Tag className="w-5 h-5" />
-                      <span>Mis Compras</span>
-                    </Link>
-                    <button
-                      onClick={() => {
-                        localStorage.removeItem('token');
-                        localStorage.removeItem('user');
-                        window.location.reload();
-                      }}
-                      className="flex items-center gap-2 px-4 py-2 text-red-600 hover:bg-red-50 transition-colors"
-                    >
-                      <X className="w-5 h-5" />
-                      <span>Cerrar Sesión</span>
-                    </button>
-                  </div>
-                ) : (
-                  <div>
-                    <Link 
-                      to="/login" 
-                      className="flex items-center gap-2 px-4 py-2 text-gray-600 hover:text-primary-500 hover:bg-gray-50/50 rounded-lg transition-all duration-300"
-                    >
-                      <User className="w-5 h-5" />
-                      <span>Iniciar Sesión</span>
-                    </Link>
-                    <Link 
-                      to="/register" 
-                      className="flex items-center gap-2 px-4 py-2 text-gray-600 hover:text-primary-500 hover:bg-gray-50/50 rounded-lg transition-all duration-300"
-                    >
-                      <User className="w-5 h-5" />
-                      <span>Crear Cuenta</span>
-                    </Link>
-                  </div>
-                )}
+                <Link 
+                  to="/profile" 
+                  className="flex items-center gap-2 px-4 py-2 text-gray-600 hover:text-primary-500 hover:bg-gray-50/50 rounded-lg transition-all duration-300"
+                >
+                  <User className="w-5 h-5" />
+                  <span>Mi Perfil</span>
+                </Link>
+                <Link 
+                  to="/purchases" 
+                  className="flex items-center gap-2 px-4 py-2 text-gray-600 hover:text-primary-500 hover:bg-gray-50/50 rounded-lg transition-all duration-300"
+                >
+                  <Tag className="w-5 h-5" />
+                  <span>Mis Compras</span>
+                </Link>
+                <button
+                  onClick={() => {
+                    localStorage.removeItem('token');
+                    localStorage.removeItem('user');
+                    window.location.reload();
+                  }}
+                  className="flex items-center gap-2 px-4 py-2 text-red-600 hover:bg-red-50 transition-colors"
+                >
+                  <X className="w-5 h-5" />
+                  <span>Cerrar Sesión</span>
+                </button>
               </div>
             </div>
           </div>

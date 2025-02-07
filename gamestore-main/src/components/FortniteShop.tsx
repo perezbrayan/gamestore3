@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { getDailyShop } from '../services/fortniteApi';
-import { Filter, ChevronDown, ChevronUp, Loader2 } from 'lucide-react';
+import { Filter, ChevronDown, ChevronUp, Loader2, ShoppingCart, X } from 'lucide-react';
+import { useCart } from '../context/CartContext';
 
 interface ShopItem {
   mainId: string;
@@ -23,10 +24,15 @@ interface ShopItem {
 }
 
 const FortniteShop: React.FC = () => {
+  const { addItem, getItemQuantity, hasItems } = useCart();
   const [items, setItems] = useState<ShopItem[]>([]);
   const [filteredItems, setFilteredItems] = useState<ShopItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [showNotification, setShowNotification] = useState(false);
+  const [lastAddedItem, setLastAddedItem] = useState<string>('');
+  const [showErrorMessage, setShowErrorMessage] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
 
   // Estados para los filtros
   const [rarityFilters, setRarityFilters] = useState<string[]>([]);
@@ -97,6 +103,27 @@ const FortniteShop: React.FC = () => {
   const uniqueRarities = Array.from(new Set(
     items.map(item => item.rarity?.name).filter(Boolean)
   ));
+
+  // Función para manejar la adición de items al carrito
+  const handleAddToCart = (item: ShopItem) => {
+    const result = addItem({
+      mainId: item.mainId,
+      displayName: item.displayName,
+      price: item.price.finalPrice,
+      image: item.displayAssets[0]?.full_background || item.displayAssets[0]?.background,
+      quantity: 1
+    });
+
+    if (result.success) {
+      setLastAddedItem(item.displayName);
+      setShowNotification(true);
+      setTimeout(() => setShowNotification(false), 2000);
+    } else {
+      setErrorMessage(result.message || '');
+      setShowErrorMessage(true);
+      setTimeout(() => setShowErrorMessage(false), 3000);
+    }
+  };
 
   if (loading) {
     return (
@@ -214,6 +241,25 @@ const FortniteShop: React.FC = () => {
 
         {/* Contenido Principal */}
         <main className="flex-1">
+          {/* Notificación flotante */}
+          {showNotification && (
+            <div className="fixed bottom-4 right-4 bg-primary-600 text-white px-6 py-3 rounded-lg shadow-lg z-50 animate-fade-in">
+              <div className="flex items-center gap-2">
+                <ShoppingCart className="w-5 h-5" />
+                <span>{lastAddedItem} agregado al carrito</span>
+              </div>
+            </div>
+          )}
+
+          {/* Notificación de error */}
+          {showErrorMessage && (
+            <div className="fixed bottom-4 right-4 bg-red-600 text-white px-6 py-3 rounded-lg shadow-lg z-50 animate-fade-in">
+              <div className="flex items-center gap-2">
+                <X className="w-5 h-5" />
+                <span>{errorMessage}</span>
+              </div>
+            </div>
+          )}
           {/* Items Grid */}
           <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
             {filteredItems.map((item) => (
@@ -241,6 +287,25 @@ const FortniteShop: React.FC = () => {
                     <p className="text-lg font-medium text-primary-600">
                       {item.price.finalPrice} V-Bucks
                     </p>
+                    <button
+                      onClick={() => handleAddToCart(item)}
+                      className={`p-2 rounded-full transition-colors relative ${
+                        hasItems && getItemQuantity(item.mainId) === 0
+                          ? 'text-gray-400 cursor-not-allowed'
+                          : 'text-primary-600 hover:bg-primary-50'
+                      }`}
+                      title={hasItems && getItemQuantity(item.mainId) === 0 
+                        ? "No es posible enviar dos regalos simultáneamente"
+                        : "Agregar al carrito"}
+                      disabled={hasItems && getItemQuantity(item.mainId) === 0}
+                    >
+                      <ShoppingCart className="w-5 h-5" />
+                      {getItemQuantity(item.mainId) > 0 && (
+                        <span className="absolute -top-1 -right-1 bg-primary-500 text-white text-xs w-5 h-5 rounded-full flex items-center justify-center">
+                          {getItemQuantity(item.mainId)}
+                        </span>
+                      )}
+                    </button>
                   </div>
                 </div>
               </div>
