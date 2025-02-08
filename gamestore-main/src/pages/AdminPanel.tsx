@@ -1,211 +1,186 @@
 import React, { useState, useEffect } from 'react';
 import { Container, Typography, Box, Button, Grid, Card, CardContent, Alert } from '@mui/material';
-import { FaMoneyBill, FaShoppingBag, FaUsers } from 'react-icons/fa';
+import { FaMoneyBill, FaShoppingBag, FaUsers, FaGift } from 'react-icons/fa';
 import { useNavigate } from 'react-router-dom';
 import { UserManagement } from '../components/admin/UserManagement';
 import { ProductManagement } from '../components/admin/ProductManagement';
 import { VBucksManagement } from '../components/admin/VBucksManagement';
+import { GiftManagement } from '../components/admin/GiftManagement';
 import { adminService } from '../services/adminService';
 
 const AdminPanel = () => {
   const navigate = useNavigate();
-  const [activeSection, setActiveSection] = useState<string>('');
-  const [error, setError] = useState<string>('');
+  const [selectedSection, setSelectedSection] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    checkAdminAuth();
-  }, []);
-
-  const checkAdminAuth = async () => {
     const token = localStorage.getItem('token');
     if (!token) {
-      navigate('/admin/login');
-      return;
+      navigate('/login');
     }
-
-    try {
-      // Intentar obtener datos de usuario para verificar que el token es válido y es admin
-      await adminService.getUsers();
-    } catch (err) {
-      console.error('Error de autenticación:', err);
-      localStorage.removeItem('token'); // Limpiar token inválido
-      navigate('/admin/login');
-    }
-  };
-
-  const handleCardClick = (section: string) => {
-    setActiveSection(section);
-  };
+  }, [navigate]);
 
   const handleLogout = () => {
     localStorage.removeItem('token');
-    navigate('/admin/login');
+    localStorage.removeItem('adminUser');
+    navigate('/login');
   };
 
-  const renderContent = () => {
-    switch(activeSection) {
+  const handleCardClick = (section: string) => {
+    setSelectedSection(section);
+    setError(null);
+  };
+
+  const renderSection = () => {
+    switch (selectedSection) {
       case 'usuarios':
         return <UserManagement />;
       case 'productos':
         return <ProductManagement />;
       case 'vbucks':
         return <VBucksManagement />;
+      case 'regalos':
+        return <GiftManagement />;
       default:
         return null;
     }
   };
 
-  if (error) {
-    return (
-      <Container sx={{ mt: 4 }}>
-        <Alert severity="error">{error}</Alert>
-      </Container>
-    );
-  }
-
   return (
     <Box sx={{ 
-      minHeight: '100vh', 
-      bgcolor: '#FAFAFA',
-      color: '#1a1a1a',
-      pt: 12,
+      minHeight: '100vh',
+      background: '#141414',
+      pt: { xs: 8, sm: 12 },
       pb: 4
     }}>
-      <Container>
+      <Container maxWidth="lg">
         <Box sx={{ 
           display: 'flex', 
           justifyContent: 'space-between', 
-          alignItems: 'center',
-          mb: 6
+          alignItems: 'center', 
+          mb: 6,
+          color: 'white'
         }}>
-          <Typography variant="h4" component="h1" sx={{ color: '#1a1a1a' }}>
+          <Typography variant="h4" component="h1">
             PANEL DE ADMINISTRACIÓN
           </Typography>
           <Button 
-            variant="contained" 
             onClick={handleLogout}
+            variant="contained"
             sx={{ 
-              background: '#C7CAC6',
-              color: '#1a1a1a',
-              px: 3,
-              py: 1,
-              borderRadius: '8px',
-              border: '2px solid transparent',
-              fontWeight: 'bold',
-              textTransform: 'none',
-              fontSize: '1rem',
-              transition: 'all 0.3s ease-in-out',
+              backgroundColor: '#1a365d',
+              color: '#fff',
               '&:hover': {
-                background: '#4dd5ff',
-                color: 'white',
-                transform: 'scale(1.05)',
-                boxShadow: '0 4px 15px rgba(77, 213, 255, 0.3)'
+                backgroundColor: '#2a4365'
               }
             }}
           >
-            Cerrar Sesión
+            CERRAR SESIÓN
           </Button>
         </Box>
 
-        {!activeSection ? (
-          <Grid container spacing={4}>
-            <Grid item xs={12} md={4}>
-              <Card 
-                onClick={() => handleCardClick('usuarios')}
-                sx={{ 
-                  background: '#C7CAC6',
-                  color: '#1a1a1a',
-                  height: '100%',
-                  cursor: 'pointer',
-                  transition: 'all 0.3s ease',
-                  '&:hover': {
-                    transform: 'translateY(-5px)',
-                    boxShadow: '0 4px 20px rgba(0, 0, 0, 0.1)'
-                  }
-                }}
-              >
-                <CardContent>
-                  <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-                    <FaUsers size={24} style={{ marginRight: '8px' }} />
-                    <Typography variant="h6">
-                      Gestionar Usuarios
-                    </Typography>
-                  </Box>
-                  <Typography variant="body2" color="text.secondary">
-                    Administra los usuarios y sus roles
-                  </Typography>
-                </CardContent>
-              </Card>
-            </Grid>
+        {error && (
+          <Alert severity="error" sx={{ mb: 3 }}>
+            {error}
+          </Alert>
+        )}
 
-            <Grid item xs={12} md={4}>
-              <Card 
-                onClick={() => handleCardClick('productos')}
-                sx={{ 
-                  background: '#C7CAC6',
-                  color: '#1a1a1a',
-                  height: '100%',
-                  cursor: 'pointer',
-                  transition: 'all 0.3s ease',
-                  '&:hover': {
-                    transform: 'translateY(-5px)',
-                    boxShadow: '0 4px 20px rgba(0, 0, 0, 0.1)'
-                  }
-                }}
-              >
-                <CardContent>
-                  <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-                    <FaShoppingBag size={24} style={{ marginRight: '8px' }} />
-                    <Typography variant="h6">
-                      Gestionar Productos
-                    </Typography>
-                  </Box>
-                  <Typography variant="body2" color="text.secondary">
-                    Administra el catálogo de productos
-                  </Typography>
-                </CardContent>
-              </Card>
-            </Grid>
-
-            <Grid item xs={12} md={4}>
-              <Card 
-                onClick={() => handleCardClick('vbucks')}
-                sx={{ 
-                  background: '#C7CAC6',
-                  color: '#1a1a1a',
-                  height: '100%',
-                  cursor: 'pointer',
-                  transition: 'all 0.3s ease',
-                  '&:hover': {
-                    transform: 'translateY(-5px)',
-                    boxShadow: '0 4px 20px rgba(0, 0, 0, 0.1)'
-                  }
-                }}
-              >
-                <CardContent>
-                  <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-                    <FaMoneyBill size={24} style={{ marginRight: '8px' }} />
-                    <Typography variant="h6">
-                      Gestionar VBucks
-                    </Typography>
-                  </Box>
-                  <Typography variant="body2" color="text.secondary">
-                    Configura las tasas de VBucks
-                  </Typography>
-                </CardContent>
-              </Card>
-            </Grid>
+        {!selectedSection ? (
+          <Grid container spacing={3}>
+            {[
+              {
+                title: 'GESTIONAR VBUCKS',
+                description: 'Configura y actualiza las tasas de VBucks',
+                icon: <FaMoneyBill size={40} style={{ color: '#fff' }} />,
+                section: 'vbucks'
+              },
+              {
+                title: 'GESTIONAR PRODUCTOS',
+                description: 'Administra los productos de Roblox',
+                icon: <FaShoppingBag size={40} style={{ color: '#fff' }} />,
+                section: 'productos'
+              },
+              {
+                title: 'GESTIONAR USUARIOS',
+                description: 'Administra los usuarios y sus permisos',
+                icon: <FaUsers size={40} style={{ color: '#fff' }} />,
+                section: 'usuarios'
+              },
+              {
+                title: 'GESTIONAR REGALOS',
+                description: 'Administra las solicitudes de regalos',
+                icon: <FaGift size={40} style={{ color: '#fff' }} />,
+                section: 'regalos'
+              }
+            ].map((item) => (
+              <Grid item xs={12} md={6} key={item.section}>
+                <Card 
+                  onClick={() => handleCardClick(item.section)}
+                  sx={{ 
+                    background: '#1a1a1a',
+                    color: '#fff',
+                    height: '100%',
+                    cursor: 'pointer',
+                    transition: 'all 0.3s ease',
+                    border: '1px solid #2d2d2d',
+                    '&:hover': {
+                      transform: 'translateY(-5px)',
+                      boxShadow: '0 4px 20px rgba(0, 0, 0, 0.2)',
+                      borderColor: '#3182ce'
+                    }
+                  }}
+                >
+                  <CardContent>
+                    <Box sx={{ 
+                      display: 'flex', 
+                      flexDirection: 'column', 
+                      alignItems: 'center', 
+                      textAlign: 'center',
+                      gap: 2
+                    }}>
+                      {item.icon}
+                      <Typography variant="h6">
+                        {item.title}
+                      </Typography>
+                      <Typography variant="body2" sx={{ color: '#a0aec0' }}>
+                        {item.description}
+                      </Typography>
+                      <Button 
+                        variant="contained"
+                        sx={{ 
+                          mt: 'auto',
+                          backgroundColor: '#1a365d',
+                          color: '#fff',
+                          '&:hover': {
+                            backgroundColor: '#2a4365'
+                          }
+                        }}
+                      >
+                        {item.title}
+                      </Button>
+                    </Box>
+                  </CardContent>
+                </Card>
+              </Grid>
+            ))}
           </Grid>
         ) : (
           <Box>
-            <Button
-              variant="outlined"
-              onClick={() => setActiveSection('')}
-              sx={{ mb: 4 }}
+            <Button 
+              onClick={() => setSelectedSection(null)}
+              variant="contained"
+              sx={{ 
+                mb: 3,
+                backgroundColor: '#1a365d',
+                color: '#fff',
+                '&:hover': {
+                  backgroundColor: '#2a4365'
+                }
+              }}
             >
-              Volver al Panel Principal
+              Volver al Panel
             </Button>
-            {renderContent()}
+            {renderSection()}
           </Box>
         )}
       </Container>

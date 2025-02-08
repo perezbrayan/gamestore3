@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useCart } from '../context/CartContext';
 import { Check, Gift, LogOut } from 'lucide-react';
+import axios from 'axios';
+import { Loader2 } from 'lucide-react';
 
 const CheckoutSteps = ({ currentStep, isAuthenticated }: { currentStep: number, isAuthenticated: boolean }) => {
   const steps = [
@@ -53,50 +55,63 @@ const CheckoutSteps = ({ currentStep, isAuthenticated }: { currentStep: number, 
   );
 };
 
-const OrderSummary = ({ item, onContinue }) => (
-  <div className="mt-8">
-    <h2 className="text-2xl font-bold text-gray-900 mb-8">Detalles del Producto</h2>
-    <div className="flex gap-8 mb-8">
-      <div className="w-1/3">
-        <div className="aspect-square rounded-2xl overflow-hidden bg-gray-100">
-          <img
-            src={item.image}
-            alt={item.displayName}
-            className="w-full h-full object-cover"
-          />
+const OrderSummary = ({ item, onContinue }) => {
+  const navigate = useNavigate();
+  const { items: cartItems } = useCart();
+
+  const handleBack = () => {
+    if (cartItems.length > 0) {
+      navigate('/fortnite-shop', { state: { keepCart: true } });
+    } else {
+      navigate('/fortnite-shop');
+    }
+  };
+
+  return (
+    <div className="mt-8">
+      <h2 className="text-2xl font-bold text-gray-900 mb-8">Detalles del Producto</h2>
+      <div className="flex gap-8 mb-8">
+        <div className="w-1/3">
+          <div className="aspect-square rounded-2xl overflow-hidden bg-gray-100">
+            <img
+              src={item.image}
+              alt={item.displayName}
+              className="w-full h-full object-cover"
+            />
+          </div>
+        </div>
+        <div className="flex-1">
+          <h3 className="text-xl font-semibold text-gray-900 mb-4">{item.displayName}</h3>
+          <div className="space-y-3 mb-6">
+            <div className="flex items-center gap-2 text-gray-600">
+              <Gift className="w-5 h-5 text-primary-500" />
+              <span>Regalo Especial</span>
+            </div>
+            <p className="text-gray-600">Cantidad: 1</p>
+            <div className="flex items-center gap-2">
+              <span className="text-3xl font-bold text-primary-600">{item.price}</span>
+              <span className="text-gray-500">V-Bucks</span>
+            </div>
+          </div>
         </div>
       </div>
-      <div className="flex-1">
-        <h3 className="text-xl font-semibold text-gray-900 mb-4">{item.displayName}</h3>
-        <div className="space-y-3 mb-6">
-          <div className="flex items-center gap-2 text-gray-600">
-            <Gift className="w-5 h-5 text-primary-500" />
-            <span>Regalo Especial</span>
-          </div>
-          <p className="text-gray-600">Cantidad: 1</p>
-          <div className="flex items-center gap-2">
-            <span className="text-3xl font-bold text-primary-600">{item.price}</span>
-            <span className="text-gray-500">V-Bucks</span>
-          </div>
-        </div>
+      <div className="flex justify-between items-center pt-6 border-t border-gray-100">
+        <button
+          onClick={handleBack}
+          className="px-6 py-2 text-gray-600 hover:text-gray-900 transition-colors"
+        >
+          Volver a la tienda
+        </button>
+        <button
+          onClick={onContinue}
+          className="px-8 py-3 bg-primary-600 text-white rounded-xl hover:bg-primary-700 transition-colors shadow-lg shadow-primary-600/20"
+        >
+          Continuar
+        </button>
       </div>
     </div>
-    <div className="flex justify-between items-center pt-6 border-t border-gray-100">
-      <button
-        onClick={() => window.history.back()}
-        className="px-6 py-2 text-gray-600 hover:text-gray-900 transition-colors"
-      >
-        Volver a la tienda
-      </button>
-      <button
-        onClick={onContinue}
-        className="px-8 py-3 bg-primary-600 text-white rounded-xl hover:bg-primary-700 transition-colors shadow-lg shadow-primary-600/20"
-      >
-        Continuar
-      </button>
-    </div>
-  </div>
-);
+  );
+};
 
 const UserInformation = ({ onContinue, onBack }) => {
   const [username, setUsername] = useState('');
@@ -154,53 +169,98 @@ const UserInformation = ({ onContinue, onBack }) => {
   );
 };
 
-const Payment = ({ item, username, onBack }) => (
-  <div className="mt-8">
-    <h2 className="text-2xl font-bold text-gray-900 mb-8">Resumen de la Orden</h2>
-    <div className="max-w-xl mx-auto">
-      <div className="space-y-4 mb-8">
-        <div className="flex justify-between py-4 border-b border-gray-100">
-          <span className="text-gray-600">Producto</span>
-          <span className="font-medium text-gray-900">{item.displayName}</span>
-        </div>
-        <div className="flex justify-between py-4 border-b border-gray-100">
-          <span className="text-gray-600">Usuario de Fortnite</span>
-          <span className="font-medium text-gray-900">{username}</span>
-        </div>
-        <div className="flex justify-between py-4 border-b border-gray-100">
-          <span className="text-gray-600">Precio</span>
-          <div className="flex items-center gap-2">
-            <span className="font-medium text-gray-900">{item.price}</span>
-            <span className="text-gray-500">V-Bucks</span>
+const Payment = ({ item, username, onBack }) => {
+  const navigate = useNavigate();
+  const [processing, setProcessing] = useState(false);
+  const [error, setError] = useState('');
+
+  const handlePayment = async () => {
+    try {
+      setProcessing(true);
+      setError('');
+      
+      // Crear el regalo
+      const response = await axios.post(`${process.env.REACT_APP_API_URL}/gifts`, {
+        productId: item.mainId,
+        username: username
+      });
+
+      if (response.data) {
+        alert('¡Regalo enviado! Esperando aprobación del administrador.');
+        navigate('/fortnite-shop');
+      }
+    } catch (err) {
+      setError('Error al procesar el pago. Por favor, intente nuevamente.');
+    } finally {
+      setProcessing(false);
+    }
+  };
+
+  return (
+    <div className="mt-8">
+      <h2 className="text-2xl font-bold text-gray-900 mb-8">Resumen de la Orden</h2>
+      <div className="max-w-xl mx-auto">
+        <div className="space-y-4 mb-8">
+          <div className="flex justify-between py-4 border-b border-gray-100">
+            <span className="text-gray-600">Producto</span>
+            <span className="font-medium text-gray-900">{item.displayName}</span>
+          </div>
+          <div className="flex justify-between py-4 border-b border-gray-100">
+            <span className="text-gray-600">Usuario de Fortnite</span>
+            <span className="font-medium text-gray-900">{username}</span>
+          </div>
+          <div className="flex justify-between py-4 border-b border-gray-100">
+            <span className="text-gray-600">Precio</span>
+            <div className="flex items-center gap-2">
+              <span className="font-medium text-gray-900">{item.price}</span>
+              <span className="text-gray-500">V-Bucks</span>
+            </div>
           </div>
         </div>
-      </div>
-      <div className="bg-gray-50 p-6 rounded-2xl mb-8">
-        <div className="flex justify-between items-center">
-          <span className="text-lg font-medium text-gray-900">Total a Pagar</span>
-          <div className="flex items-center gap-2">
-            <span className="text-3xl font-bold text-primary-600">{item.price}</span>
-            <span className="text-gray-500">V-Bucks</span>
+
+        <div className="bg-gray-50 p-6 rounded-2xl mb-8">
+          <div className="flex justify-between items-center">
+            <span className="text-lg font-medium text-gray-900">Total a Pagar</span>
+            <div className="flex items-center gap-2">
+              <span className="text-3xl font-bold text-primary-600">{item.price}</span>
+              <span className="text-gray-500">V-Bucks</span>
+            </div>
           </div>
         </div>
-      </div>
-      <div className="flex justify-between items-center pt-6">
-        <button
-          onClick={onBack}
-          className="px-6 py-2 text-gray-600 hover:text-gray-900 transition-colors"
-        >
-          Atrás
-        </button>
-        <button
-          onClick={() => alert('¡Pago procesado!')}
-          className="px-12 py-4 bg-primary-600 text-white rounded-xl hover:bg-primary-700 transition-colors font-semibold text-lg shadow-lg shadow-primary-600/20"
-        >
-          Pagar
-        </button>
+
+        {error && (
+          <div className="mb-6 p-4 bg-red-50 rounded-lg text-red-600">
+            {error}
+          </div>
+        )}
+
+        <div className="flex justify-between items-center pt-6">
+          <button
+            onClick={() => onBack(1)}
+            disabled={processing}
+            className="px-6 py-2 text-gray-600 hover:text-gray-900 transition-colors disabled:opacity-50"
+          >
+            Atrás
+          </button>
+          <button
+            onClick={handlePayment}
+            disabled={processing}
+            className="px-12 py-4 bg-primary-600 text-white rounded-xl hover:bg-primary-700 transition-colors font-semibold text-lg shadow-lg shadow-primary-600/20 disabled:opacity-50"
+          >
+            {processing ? (
+              <div className="flex items-center gap-2">
+                <Loader2 className="w-5 h-5 animate-spin" />
+                <span>Procesando...</span>
+              </div>
+            ) : (
+              'Pagar'
+            )}
+          </button>
+        </div>
       </div>
     </div>
-  </div>
-);
+  );
+};
 
 const Checkout = () => {
   const [step, setStep] = useState(1);
@@ -237,8 +297,13 @@ const Checkout = () => {
     setStep(3);
   };
 
-  const handleBack = () => {
-    setStep(step - 1);
+  const handleBack = (targetStep: number) => {
+    if (targetStep === 1) {
+      // Si volvemos al primer paso, mantenemos el item en el carrito
+      setStep(1);
+    } else {
+      setStep(step - 1);
+    }
   };
 
   if (!item) return null;
@@ -251,9 +316,9 @@ const Checkout = () => {
           
           {step === 1 && <OrderSummary item={item} onContinue={handleContinue} />}
           {step === 2 && !user && (
-            <UserInformation onContinue={handleUserSubmit} onBack={handleBack} />
+            <UserInformation onContinue={handleUserSubmit} onBack={() => handleBack(1)} />
           )}
-          {step === 3 && <Payment item={item} username={username} onBack={handleBack} />}
+          {step === 3 && <Payment item={item} username={username} onBack={() => handleBack(1)} />}
         </div>
       </div>
     </div>

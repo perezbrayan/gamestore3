@@ -122,50 +122,57 @@ export const ProductManagement = () => {
   };
 
   return (
-    <Container sx={{ mt: 4 }}>
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 4 }}>
-        <Typography variant="h5" component="h2">
-          Gestión de Productos
-        </Typography>
-        <Button
-          variant="contained"
-          color="primary"
-          onClick={() => setOpen(true)}
-        >
-          Nuevo Producto
-        </Button>
-      </Box>
-
+    <Box sx={{ color: 'white' }}>
       <Snackbar open={!!error} autoHideDuration={6000} onClose={() => setError('')}>
-        <Alert severity="error" onClose={() => setError('')}>
+        <Alert severity="error" sx={{ backgroundColor: '#2D3748', color: 'white' }} onClose={() => setError('')}>
           {error}
         </Alert>
       </Snackbar>
 
       <Snackbar open={!!success} autoHideDuration={6000} onClose={() => setSuccess('')}>
-        <Alert severity="success" onClose={() => setSuccess('')}>
+        <Alert severity="success" sx={{ backgroundColor: '#2D3748', color: 'white' }} onClose={() => setSuccess('')}>
           {success}
         </Alert>
       </Snackbar>
 
+      <Box sx={{ 
+        display: 'flex', 
+        justifyContent: 'space-between', 
+        alignItems: 'center', 
+        mb: 4 
+      }}>
+        <Typography variant="h6">
+          Gestión de Productos
+        </Typography>
+        <Button
+          variant="contained"
+          onClick={() => setOpen(true)}
+          sx={{
+            backgroundColor: '#1a365d',
+            color: '#fff',
+            '&:hover': {
+              backgroundColor: '#2a4365'
+            }
+          }}
+        >
+          Nuevo Producto
+        </Button>
+      </Box>
+
       <Grid container spacing={3}>
         {products.map((product) => (
           <Grid item xs={12} sm={6} md={4} lg={3} key={product.id}>
-            <Card 
-              sx={{ 
-                height: '100%', 
-                display: 'flex', 
-                flexDirection: 'column',
-                background: 'linear-gradient(to bottom right, #ffffff, #f8f9fa)',
-                borderRadius: '16px',
-                boxShadow: '0 8px 16px rgba(0,0,0,0.1)',
-                transition: 'transform 0.2s, box-shadow 0.2s',
-                '&:hover': {
-                  transform: 'translateY(-5px)',
-                  boxShadow: '0 12px 20px rgba(0,0,0,0.15)',
-                }
-              }}
-            >
+            <Card sx={{ 
+              height: '100%',
+              display: 'flex',
+              flexDirection: 'column',
+              backgroundColor: '#1a1a1a',
+              border: '1px solid #2d2d2d',
+              '&:hover': {
+                borderColor: '#3182ce',
+                boxShadow: '0 4px 20px rgba(0, 0, 0, 0.2)'
+              }
+            }}>
               {product.image_url && (
                 <CardMedia
                   component="img"
@@ -180,13 +187,13 @@ export const ProductManagement = () => {
                   alt={product.title}
                 />
               )}
-              <CardContent sx={{ flexGrow: 1, p: 3 }}>
+              <CardContent sx={{ flexGrow: 1, color: 'white' }}>
                 <Typography 
                   variant="h6" 
                   gutterBottom 
                   sx={{ 
                     fontWeight: 'bold',
-                    color: '#2c3e50',
+                    color: '#2ecc71',
                     mb: 2
                   }}
                 >
@@ -194,7 +201,7 @@ export const ProductManagement = () => {
                 </Typography>
                 <Typography 
                   sx={{ 
-                    color: '#2ecc71',
+                    color: '#4FD1C5',
                     fontSize: '1.25rem',
                     fontWeight: 'bold',
                     mb: 2
@@ -218,7 +225,7 @@ export const ProductManagement = () => {
                 <Typography 
                   variant="body2" 
                   sx={{ 
-                    color: '#34495e',
+                    color: '#A0AEC0',
                     mb: 2,
                     lineHeight: 1.6
                   }}
@@ -239,15 +246,14 @@ export const ProductManagement = () => {
               <CardActions sx={{ p: 2, pt: 0 }}>
                 <Button 
                   size="medium" 
-                  color="error"
                   variant="contained"
+                  color="error"
                   onClick={() => handleDeleteProduct(product.id)}
                   sx={{
-                    borderRadius: '8px',
-                    textTransform: 'none',
-                    boxShadow: 'none',
+                    backgroundColor: '#C53030',
+                    color: '#fff',
                     '&:hover': {
-                      boxShadow: '0 4px 8px rgba(231, 76, 60, 0.2)',
+                      backgroundColor: '#9B2C2C'
                     }
                   }}
                 >
@@ -259,100 +265,215 @@ export const ProductManagement = () => {
         ))}
       </Grid>
 
-      <Dialog open={open} onClose={() => setOpen(false)} maxWidth="sm" fullWidth>
-        <DialogTitle>Crear Nuevo Producto</DialogTitle>
+      <Dialog 
+        open={open} 
+        onClose={() => setOpen(false)}
+        PaperProps={{
+          sx: {
+            backgroundColor: '#1a1a1a',
+            color: 'white'
+          }
+        }}
+      >
+        <DialogTitle>Nuevo Producto</DialogTitle>
         <DialogContent>
-          <TextField
-            autoFocus
-            margin="dense"
-            label="Título del Producto"
-            fullWidth
-            value={newProduct.title}
-            onChange={(e) => setNewProduct({ ...newProduct, title: e.target.value })}
-          />
-          <TextField
-            margin="dense"
-            label="Precio"
-            type="number"
-            fullWidth
-            value={newProduct.price}
-            onChange={(e) => setNewProduct({ ...newProduct, price: e.target.value })}
-          />
-          <TextField
-            margin="dense"
-            label="Cantidad (opcional)"
-            type="number"
-            fullWidth
-            value={newProduct.amount}
-            onChange={(e) => setNewProduct({ ...newProduct, amount: e.target.value })}
-          />
-          <input
-            accept="image/*"
-            style={{ display: 'none' }}
-            id="raised-button-file"
-            type="file"
-            onChange={(e) => {
-              const file = e.target.files?.[0];
-              if (file) {
-                const reader = new FileReader();
-                reader.onloadend = () => {
-                  setNewProduct({
-                    ...newProduct,
-                    image: file,
-                    imagePreview: reader.result as string
-                  });
-                };
-                reader.readAsDataURL(file);
+          <Box component="form" sx={{ mt: 2 }}>
+            <TextField
+              autoFocus
+              margin="dense"
+              label="Título del Producto"
+              fullWidth
+              value={newProduct.title}
+              onChange={(e) => setNewProduct({ ...newProduct, title: e.target.value })}
+              sx={{
+                mb: 2,
+                '& .MuiOutlinedInput-root': {
+                  color: 'white',
+                  '& fieldset': {
+                    borderColor: '#2d2d2d',
+                  },
+                  '&:hover fieldset': {
+                    borderColor: '#3182ce',
+                  },
+                  '&.Mui-focused fieldset': {
+                    borderColor: '#3182ce',
+                  },
+                  backgroundColor: '#1a1a1a',
+                },
+                '& .MuiInputLabel-root': {
+                  color: 'white',
+                },
+              }}
+            />
+            <TextField
+              margin="dense"
+              label="Precio"
+              type="number"
+              fullWidth
+              value={newProduct.price}
+              onChange={(e) => setNewProduct({ ...newProduct, price: e.target.value })}
+              sx={{
+                mb: 2,
+                '& .MuiOutlinedInput-root': {
+                  color: 'white',
+                  '& fieldset': {
+                    borderColor: '#2d2d2d',
+                  },
+                  '&:hover fieldset': {
+                    borderColor: '#3182ce',
+                  },
+                  '&.Mui-focused fieldset': {
+                    borderColor: '#3182ce',
+                  },
+                  backgroundColor: '#1a1a1a',
+                },
+                '& .MuiInputLabel-root': {
+                  color: 'white',
+                },
+              }}
+            />
+            <TextField
+              margin="dense"
+              label="Cantidad (opcional)"
+              type="number"
+              fullWidth
+              value={newProduct.amount}
+              onChange={(e) => setNewProduct({ ...newProduct, amount: e.target.value })}
+              sx={{
+                mb: 2,
+                '& .MuiOutlinedInput-root': {
+                  color: 'white',
+                  '& fieldset': {
+                    borderColor: '#2d2d2d',
+                  },
+                  '&:hover fieldset': {
+                    borderColor: '#3182ce',
+                  },
+                  '&.Mui-focused fieldset': {
+                    borderColor: '#3182ce',
+                  },
+                  backgroundColor: '#1a1a1a',
+                },
+                '& .MuiInputLabel-root': {
+                  color: 'white',
+                },
+              }}
+            />
+            <input
+              accept="image/*"
+              style={{ display: 'none' }}
+              id="raised-button-file"
+              type="file"
+              onChange={(e) => {
+                const file = e.target.files?.[0];
+                if (file) {
+                  const reader = new FileReader();
+                  reader.onloadend = () => {
+                    setNewProduct({
+                      ...newProduct,
+                      image: file,
+                      imagePreview: reader.result as string
+                    });
+                  };
+                  reader.readAsDataURL(file);
+                }
+              }}
+            />
+            <label htmlFor="raised-button-file">
+              <Button variant="outlined" component="span" fullWidth sx={{ mt: 1, mb: 1 }}>
+                Subir Imagen
+              </Button>
+            </label>
+            {newProduct.imagePreview && (
+              <Box sx={{ mt: 2, mb: 2, textAlign: 'center' }}>
+                <img 
+                  src={newProduct.imagePreview} 
+                  alt="Vista previa" 
+                  style={{ 
+                    maxWidth: '100%', 
+                    maxHeight: '200px', 
+                    objectFit: 'contain' 
+                  }} 
+                />
+              </Box>
+            )}
+            <FormControl fullWidth margin="dense">
+              <InputLabel sx={{ color: 'white' }}>Tipo</InputLabel>
+              <Select
+                value={newProduct.type}
+                label="Tipo"
+                onChange={(e) => setNewProduct({ ...newProduct, type: e.target.value })}
+                sx={{
+                  color: 'white',
+                  '& .MuiOutlinedInput-notchedOutline': {
+                    borderColor: '#2d2d2d',
+                  },
+                  '&:hover .MuiOutlinedInput-notchedOutline': {
+                    borderColor: '#3182ce',
+                  },
+                  '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                    borderColor: '#3182ce',
+                  },
+                  backgroundColor: '#1a1a1a',
+                }}
+              >
+                <MenuItem value="vbucks">VBucks</MenuItem>
+                <MenuItem value="item">Item</MenuItem>
+                <MenuItem value="skin">Skin</MenuItem>
+              </Select>
+            </FormControl>
+            <TextField
+              margin="dense"
+              label="Descripción"
+              fullWidth
+              multiline
+              rows={4}
+              value={newProduct.description}
+              onChange={(e) => setNewProduct({ ...newProduct, description: e.target.value })}
+              sx={{
+                mb: 2,
+                '& .MuiOutlinedInput-root': {
+                  color: 'white',
+                  '& fieldset': {
+                    borderColor: '#2d2d2d',
+                  },
+                  '&:hover fieldset': {
+                    borderColor: '#3182ce',
+                  },
+                  '&.Mui-focused fieldset': {
+                    borderColor: '#3182ce',
+                  },
+                  backgroundColor: '#1a1a1a',
+                },
+                '& .MuiInputLabel-root': {
+                  color: 'white',
+                },
+              }}
+            />
+          </Box>
+        </DialogContent>
+        <DialogActions sx={{ p: 2, backgroundColor: '#1a1a1a' }}>
+          <Button 
+            onClick={() => setOpen(false)}
+            sx={{ color: 'white' }}
+          >
+            Cancelar
+          </Button>
+          <Button 
+            onClick={handleCreateProduct}
+            variant="contained"
+            sx={{
+              backgroundColor: '#1a365d',
+              color: '#fff',
+              '&:hover': {
+                backgroundColor: '#2a4365'
               }
             }}
-          />
-          <label htmlFor="raised-button-file">
-            <Button variant="outlined" component="span" fullWidth sx={{ mt: 1, mb: 1 }}>
-              Subir Imagen
-            </Button>
-          </label>
-          {newProduct.imagePreview && (
-            <Box sx={{ mt: 2, mb: 2, textAlign: 'center' }}>
-              <img 
-                src={newProduct.imagePreview} 
-                alt="Vista previa" 
-                style={{ 
-                  maxWidth: '100%', 
-                  maxHeight: '200px', 
-                  objectFit: 'contain' 
-                }} 
-              />
-            </Box>
-          )}
-          <FormControl fullWidth margin="dense">
-            <InputLabel>Tipo</InputLabel>
-            <Select
-              value={newProduct.type}
-              label="Tipo"
-              onChange={(e) => setNewProduct({ ...newProduct, type: e.target.value })}
-            >
-              <MenuItem value="vbucks">VBucks</MenuItem>
-              <MenuItem value="item">Item</MenuItem>
-              <MenuItem value="skin">Skin</MenuItem>
-            </Select>
-          </FormControl>
-          <TextField
-            margin="dense"
-            label="Descripción"
-            fullWidth
-            multiline
-            rows={4}
-            value={newProduct.description}
-            onChange={(e) => setNewProduct({ ...newProduct, description: e.target.value })}
-          />
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setOpen(false)}>Cancelar</Button>
-          <Button onClick={handleCreateProduct} color="primary">
+          >
             Crear
           </Button>
         </DialogActions>
       </Dialog>
-    </Container>
+    </Box>
   );
 };

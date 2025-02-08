@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { getDailyShop } from '../services/fortniteApi';
 import { Filter, ChevronDown, ChevronUp, Loader2, ShoppingCart, X } from 'lucide-react';
 import { useCart } from '../context/CartContext';
+import { useLocation } from 'react-router-dom';
 
 interface ShopItem {
   mainId: string;
@@ -33,6 +34,7 @@ const FortniteShop: React.FC = () => {
   const [lastAddedItem, setLastAddedItem] = useState<string>('');
   const [showErrorMessage, setShowErrorMessage] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
+  const location = useLocation();
 
   // Estados para los filtros
   const [rarityFilters, setRarityFilters] = useState<string[]>([]);
@@ -43,8 +45,13 @@ const FortniteShop: React.FC = () => {
   const [isPriceFilterOpen, setIsPriceFilterOpen] = useState(false);
 
   useEffect(() => {
+    // Si estamos regresando del checkout y tenemos keepCart en true, no hacemos nada
+    const state = location.state as { keepCart?: boolean };
+    if (state?.keepCart) {
+      return;
+    }
     fetchItems();
-  }, []);
+  }, [location]);
 
   useEffect(() => {
     setFilteredItems(applyAllFilters(items));

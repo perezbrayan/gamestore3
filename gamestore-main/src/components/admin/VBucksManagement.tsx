@@ -94,101 +94,152 @@ export const VBucksManagement = () => {
   };
 
   return (
-    <Container sx={{ mt: 4 }}>
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 4 }}>
-        <Typography variant="h5" component="h2">
-          Gestión de VBucks
+    <Box sx={{ color: 'white' }}>
+      <Container sx={{ mt: 4 }}>
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 4 }}>
+          <Typography variant="h5" component="h2">
+            Gestión de VBucks
+          </Typography>
+          <Button
+            variant="contained"
+            color="primary"
+            onClick={() => setOpen(true)}
+            sx={{
+              backgroundColor: '#1a365d',
+              color: '#fff',
+              '&:hover': {
+                backgroundColor: '#2a4365'
+              }
+            }}
+          >
+            Actualizar Tasa
+          </Button>
+        </Box>
+
+        <Snackbar open={!!error} autoHideDuration={6000} onClose={() => setError('')}>
+          <Alert severity="error" onClose={() => setError('')} sx={{ backgroundColor: '#2D3748', color: 'white' }}>
+            {error}
+          </Alert>
+        </Snackbar>
+
+        <Snackbar open={!!success} autoHideDuration={6000} onClose={() => setSuccess('')}>
+          <Alert severity="success" onClose={() => setSuccess('')} sx={{ backgroundColor: '#2D3748', color: 'white' }}>
+            {success}
+          </Alert>
+        </Snackbar>
+
+        <Paper sx={{ 
+          p: 3, 
+          mb: 4, 
+          backgroundColor: '#1a1a1a',
+          color: 'white',
+          border: '1px solid #2d2d2d'
+        }}>
+          <Typography variant="h6" gutterBottom sx={{ mb: 2 }}>
+            Tasa Actual
+          </Typography>
+          <Typography variant="h4" sx={{ color: '#3182ce' }}>
+            {currentRate} USD/VBuck
+          </Typography>
+        </Paper>
+
+        <Typography variant="h6" gutterBottom sx={{ mt: 4 }}>
+          Historial de Tasas
         </Typography>
-        <Button
-          variant="contained"
-          color="primary"
-          onClick={() => setOpen(true)}
-        >
-          Actualizar Tasa
-        </Button>
-      </Box>
-
-      <Snackbar open={!!error} autoHideDuration={6000} onClose={() => setError('')}>
-        <Alert severity="error" onClose={() => setError('')}>
-          {error}
-        </Alert>
-      </Snackbar>
-
-      <Snackbar open={!!success} autoHideDuration={6000} onClose={() => setSuccess('')}>
-        <Alert severity="success" onClose={() => setSuccess('')}>
-          {success}
-        </Alert>
-      </Snackbar>
-
-      <Paper sx={{ p: 3, mb: 4 }}>
-        <Typography variant="h6" gutterBottom>
-          Tasa Actual
-        </Typography>
-        <Typography variant="h4" color="primary">
-          {currentRate} USD/VBuck
-        </Typography>
-      </Paper>
-
-      <Typography variant="h6" gutterBottom sx={{ mt: 4 }}>
-        Historial de Tasas
-      </Typography>
-      <TableContainer component={Paper}>
-        <Table>
-          <TableHead>
-            <TableRow>
-              <TableCell>Tasa</TableCell>
-              <TableCell>Fecha de Cambio</TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {history && history.length > 0 ? (
-              history.map((item, index) => (
-                <TableRow key={index}>
-                  <TableCell>{item.rate} USD/VBuck</TableCell>
-                  <TableCell>
-                    {new Date(item.created_at).toLocaleString()}
+        <TableContainer component={Paper} sx={{ 
+          p: 3,
+          backgroundColor: '#1a1a1a',
+          color: 'white',
+          border: '1px solid #2d2d2d'
+        }}>
+          <Table>
+            <TableHead>
+              <TableRow>
+                <TableCell sx={{ color: 'white', borderBottom: '1px solid #2d2d2d' }}>Tasa</TableCell>
+                <TableCell sx={{ color: 'white', borderBottom: '1px solid #2d2d2d' }}>Fecha de Cambio</TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {history && history.length > 0 ? (
+                history.map((item, index) => (
+                  <TableRow key={index}>
+                    <TableCell sx={{ color: 'white', borderBottom: '1px solid #2d2d2d' }}>
+                      {item.rate} USD/VBuck
+                    </TableCell>
+                    <TableCell sx={{ color: 'white', borderBottom: '1px solid #2d2d2d' }}>
+                      {new Date(item.created_at).toLocaleString()}
+                    </TableCell>
+                  </TableRow>
+                ))
+              ) : (
+                <TableRow>
+                  <TableCell colSpan={2} align="center" sx={{ color: 'white', borderBottom: '1px solid #2d2d2d' }}>
+                    No hay historial disponible
                   </TableCell>
                 </TableRow>
-              ))
-            ) : (
-              <TableRow>
-                <TableCell colSpan={2} align="center">
-                  No hay historial disponible
-                </TableCell>
-              </TableRow>
-            )}
-          </TableBody>
-        </Table>
-      </TableContainer>
+              )}
+            </TableBody>
+          </Table>
+        </TableContainer>
 
-      <Dialog open={open} onClose={() => setOpen(false)}>
-        <DialogTitle>Actualizar Tasa de VBucks</DialogTitle>
-        <DialogContent>
-          <TextField
-            autoFocus
-            margin="dense"
-            label="Nueva Tasa (USD/VBuck)"
-            type="number"
-            fullWidth
-            value={newRate}
-            onChange={(e) => setNewRate(e.target.value)}
-            inputProps={{ 
-              step: '0.01',
-              min: '0.01'
-            }}
-          />
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setOpen(false)}>Cancelar</Button>
-          <Button 
-            onClick={handleUpdateRate} 
-            color="primary"
-            disabled={!newRate || isNaN(Number(newRate)) || Number(newRate) <= 0}
-          >
-            Actualizar
-          </Button>
-        </DialogActions>
-      </Dialog>
-    </Container>
+        <Dialog open={open} onClose={() => setOpen(false)}>
+          <DialogTitle sx={{ color: 'white', backgroundColor: '#1a1a1a' }}>
+            Actualizar Tasa de VBucks
+          </DialogTitle>
+          <DialogContent sx={{ backgroundColor: '#1a1a1a' }}>
+            <TextField
+              autoFocus
+              margin="dense"
+              label="Nueva Tasa (USD/VBuck)"
+              type="number"
+              fullWidth
+              value={newRate}
+              onChange={(e) => setNewRate(e.target.value)}
+              inputProps={{ 
+                step: '0.01',
+                min: '0.01'
+              }}
+              sx={{
+                '& .MuiOutlinedInput-root': {
+                  color: 'white',
+                  '& fieldset': {
+                    borderColor: '#2d2d2d',
+                  },
+                  '&:hover fieldset': {
+                    borderColor: '#3182ce',
+                  },
+                  '&.Mui-focused fieldset': {
+                    borderColor: '#3182ce',
+                  },
+                  backgroundColor: '#1a1a1a',
+                },
+                '& .MuiInputLabel-root': {
+                  color: 'white',
+                },
+              }}
+            />
+          </DialogContent>
+          <DialogActions sx={{ backgroundColor: '#1a1a1a' }}>
+            <Button onClick={() => setOpen(false)} sx={{ color: 'white' }}>
+              Cancelar
+            </Button>
+            <Button 
+              onClick={handleUpdateRate} 
+              color="primary"
+              disabled={!newRate || isNaN(Number(newRate)) || Number(newRate) <= 0}
+              sx={{
+                backgroundColor: '#1a365d',
+                color: '#fff',
+                '&:hover': {
+                  backgroundColor: '#2a4365'
+                }
+              }}
+            >
+              Actualizar
+            </Button>
+          </DialogActions>
+        </Dialog>
+      </Container>
+    </Box>
   );
 };
